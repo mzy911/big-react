@@ -30,7 +30,7 @@ function markRef(fiber: FiberNode) {
 	fiber.flags |= Ref;
 }
 
-export const completeWork = (wip: FiberNode) => {
+export const completeWork = (wip: FiberNode): void => {
 	// 递归中的归
 
 	const newProps = wip.pendingProps;

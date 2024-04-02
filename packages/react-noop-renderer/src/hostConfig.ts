@@ -27,7 +27,7 @@ export const createInstance = (type: string, props: Props): Instance => {
 	const instance = {
 		id: instanceCounter++,
 		type,
-		children: [],
+		children: [] as (Instance | TextInstance)[],
 		parent: -1,
 		props
 	};

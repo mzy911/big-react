@@ -45,7 +45,7 @@ export function markWipReceivedUpdate() {
 	didReceiveUpdate = true;
 }
 
-// 递归中的递阶段
+// 递归中的递阶段：比较、返回子fiberNode
 export const beginWork = (wip: FiberNode, renderLane: Lane) => {
 	// bailout策略
 	didReceiveUpdate = false;

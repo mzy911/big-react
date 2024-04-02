@@ -9,7 +9,6 @@ import {
 } from 'shared/ReactTypes';
 
 // ReactElement
-
 const ReactElement = function (
 	type: Type,
 	key: Key,
@@ -22,7 +21,7 @@ const ReactElement = function (
 		key,
 		ref,
 		props,
-		__mark: 'KaSong'
+		__mark: 'mfr'
 	};
 	return element;
 };

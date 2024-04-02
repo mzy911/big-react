@@ -4,7 +4,8 @@
 	"description": "react公用方法",
 	"module": "index.ts",
 	"dependencies": {
-		"shared": "workspace:*"
+		"shared": "workspace:*",
+		"react-reconciler": "workspace:*"
 	},
 	"keywords": [],
 	"author": "",

@@ -74,7 +74,7 @@ export function hideInstance(instance: Instance) {
 	style.setProperty('display', 'none', 'important');
 }
 
-export function unhideInstance(instance: Instance) {
+export function unHideInstance(instance: Instance) {
 	const style = (instance as HTMLElement).style;
 	style.display = '';
 }
@@ -83,6 +83,6 @@ export function hideTextInstance(textInstance: TextInstance) {
 	textInstance.nodeValue = '';
 }
 
-export function unhideTextInstance(textInstance: TextInstance, text: string) {
+export function unHideTextInstance(textInstance: TextInstance, text: string) {
 	textInstance.nodeValue = text;
 }

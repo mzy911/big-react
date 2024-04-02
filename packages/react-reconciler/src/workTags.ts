@@ -10,11 +10,16 @@ export type WorkTag =
 	| typeof LazyComponent
 	| typeof MemoComponent;
 
+/**
+ * FiberNode 类型
+ */
+// 函数组件类型
 export const FunctionComponent = 0;
+// 项目挂载的根节点：ReactDOM.render()
 export const HostRoot = 3;
-
+// dom节点：<div></div>
 export const HostComponent = 5;
-// <div>123</div>
+// 文本节点：<div>123</div>
 export const HostText = 6;
 export const Fragment = 7;
 export const ContextProvider = 8;

@@ -129,7 +129,7 @@ function mountEffect(create: EffectCallback | void, deps: HookDeps | void) {
 		Passive | HookHasEffect,
 		create,
 		undefined,
-		nextDeps
+		nextDeps as HookDeps
 	);
 }
 
@@ -145,8 +145,13 @@ function updateEffect(create: EffectCallback | void, deps: HookDeps | void) {
 		if (nextDeps !== null) {
 			// 浅比较依赖
 			const prevDeps = prevEffect.deps;
-			if (areHookInputsEqual(nextDeps, prevDeps)) {
-				hook.memoizedState = pushEffect(Passive, create, destroy, nextDeps);
+			if (areHookInputsEqual(nextDeps as HookDeps, prevDeps)) {
+				hook.memoizedState = pushEffect(
+					Passive,
+					create,
+					destroy,
+					nextDeps as HookDeps
+				);
 				return;
 			}
 		}
@@ -156,7 +161,7 @@ function updateEffect(create: EffectCallback | void, deps: HookDeps | void) {
 			Passive | HookHasEffect,
 			create,
 			destroy,
-			nextDeps
+			nextDeps as HookDeps
 		);
 	}
 }

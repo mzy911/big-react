@@ -7,8 +7,8 @@ import {
 	insertChildToContainer,
 	Instance,
 	removeChild,
-	unhideInstance,
-	unhideTextInstance
+	unHideInstance,
+	unHideTextInstance
 } from 'hostConfig';
 import { FiberNode, FiberRootNode, PendingPassiveEffects } from './fiber';
 import {
@@ -166,11 +166,11 @@ function hideOrUnhideAllChildren(finishedWork: FiberNode, isHidden: boolean) {
 	findHostSubtreeRoot(finishedWork, (hostRoot) => {
 		const instance = hostRoot.stateNode;
 		if (hostRoot.tag === HostComponent) {
-			isHidden ? hideInstance(instance) : unhideInstance(instance);
+			isHidden ? hideInstance(instance) : unHideInstance(instance);
 		} else if (hostRoot.tag === HostText) {
 			isHidden
 				? hideTextInstance(instance)
-				: unhideTextInstance(instance, hostRoot.memoizedProps.content);
+				: unHideTextInstance(instance, hostRoot.memoizedProps.content);
 		}
 	});
 }

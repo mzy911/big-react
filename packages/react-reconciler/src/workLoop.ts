@@ -45,6 +45,7 @@ import { SuspenseException, getSuspenseThenable } from './thenable';
 import { unwindWork } from './fiberUnwindWork';
 import { resetHooksOnUnwind } from './fiberHooks';
 
+// 正在工作的 FiberNode
 let workInProgress: FiberNode | null = null;
 let wipRootRenderLane: Lane = NoLane;
 let rootDoesHasPassiveEffects = false;
@@ -74,8 +75,7 @@ const SuspendedOnDeprecatedThrowPromise = 4;
 let workInProgressSuspendedReason: SuspendedReason = NotSuspended;
 let workInProgressThrownValue: any = null;
 
-// TODO 执行过程中报错了
-
+// 初始化操作：让 workInProgress 指向需要遍历的第一个 FiberNode
 function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 	root.finishedLane = NoLane;
 	root.finishedWork = null;
@@ -188,6 +188,7 @@ function performConcurrentWorkOnRoot(
 		return null;
 	}
 	const needSync = lane === SyncLane || didTimeout;
+
 	// render阶段
 	const exitStatus = renderRoot(root, lane, !needSync);
 
@@ -252,6 +253,13 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
 
 let c = 0;
 
+/**
+ * 开始执行更新过程，以下方法触发此函数
+ * ReactDOM.createRoot().render、ReactDOM.render
+ * this.setState
+ * useState
+ * dispatch
+ */
 function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
 	if (__DEV__) {
 		console.log(`开始${shouldTimeSlice ? '并发' : '同步'}更新`, root);
@@ -399,29 +407,42 @@ function workLoopConcurrent() {
 	}
 }
 
+// 开始执行工作单元 - 递的阶段
 function performUnitOfWork(fiber: FiberNode) {
+	// 返回子 Fiber
 	const next = beginWork(fiber, wipRootRenderLane);
+	// 更改 props 的值
 	fiber.memoizedProps = fiber.pendingProps;
 
 	if (next === null) {
+		// 找不到子 Fiber 进入归的阶段
 		completeUnitOfWork(fiber);
 	} else {
+		// 将子 Fiber 赋值给 workInProgress
 		workInProgress = next;
 	}
 }
 
+// 完成工作单元 - 归的阶段
 function completeUnitOfWork(fiber: FiberNode) {
 	let node: FiberNode | null = fiber;
 
 	do {
+		// "向上"查找
 		completeWork(node);
+
+		// 返回兄弟 Fiber
 		const sibling = node.sibling;
 
 		if (sibling !== null) {
+			// 有兄弟 Fiber 将 sibling 赋值给 workInProgress
 			workInProgress = sibling;
 			return;
 		}
+
+		// 没有兄弟 Fiber 向上找 father Fiber
 		node = node.return;
+		// 将 father Fiber 赋值给 workInProgress
 		workInProgress = node;
 	} while (node !== null);
 }

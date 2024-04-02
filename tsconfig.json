@@ -17,9 +17,12 @@
 		"noUnusedParameters": false,
 		"noImplicitReturns": false,
 		"skipLibCheck": true,
+		"strictNullChecks": false,
+		// 配置路径解析：baseUrl + paths
 		"baseUrl": "./packages",
 		"paths": {
-			"hostConfig": ["./react-dom/src/hostConfig.ts"]
+			"hostConfig": ["./react-dom/src/hostConfig.ts"],
+			"*": ["packages/typings/*"]
 		}
 	}
 }

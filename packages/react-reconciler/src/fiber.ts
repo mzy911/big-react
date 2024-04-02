@@ -29,11 +29,11 @@ interface FiberDependencies<Value> {
 }
 
 export class FiberNode {
-	type: any;
-	tag: WorkTag;
+	tag: WorkTag; // FiberNode 节点类型
+	stateNode: any; // 如果 tag 为 HostComponent 则 stateNode 为 div Dom
+	type: any; // 如果 tag 为 FunctionComponent 则 type 为 FunctionComponent()=>{} 函数本身
 	pendingProps: Props;
 	key: Key;
-	stateNode: any;
 	ref: Ref | null;
 
 	return: FiberNode | null;
@@ -58,9 +58,7 @@ export class FiberNode {
 		// 实例
 		this.tag = tag;
 		this.key = key || null;
-		// HostComponent <div> div DOM
 		this.stateNode = null;
-		// FunctionComponent () => {}
 		this.type = null;
 
 		// 构成树状结构
@@ -72,12 +70,12 @@ export class FiberNode {
 		this.ref = null;
 
 		// 作为工作单元
-		this.pendingProps = pendingProps;
-		this.memoizedProps = null;
+		this.pendingProps = pendingProps; // 工作开始前的 props
+		this.memoizedProps = null; // 工作结束后的 props
 		this.memoizedState = null;
 		this.updateQueue = null;
-
 		this.alternate = null;
+
 		// 副作用
 		this.flags = NoFlags;
 		this.subtreeFlags = NoFlags;
@@ -95,10 +93,15 @@ export interface PendingPassiveEffects {
 	update: Effect[];
 }
 
+/**
+ * 最顶层的 Fiber 在 hostRootFiber(跟节点Fiber) 之上
+ * 1、fiberRootNode.current = hostRootFiber
+ * 2、hostRootFiber.stateNode = fiberRootNode
+ */
 export class FiberRootNode {
-	container: Container;
-	current: FiberNode;
-	finishedWork: FiberNode | null;
+	container: Container; // 容器"根节点"，不一定为DOM
+	current: FiberNode; // 指向 hostRootFiber
+	finishedWork: FiberNode | null; // 指向更新完成之后的 hostRootFiber
 	pendingLanes: Lanes;
 	suspendedLanes: Lanes;
 	pingedLanes: Lanes;
@@ -188,8 +191,9 @@ export function createFiberFromElement(element: ReactElementType): FiberNode {
 			case REACT_MEMO_TYPE:
 				fiberTag = MemoComponent;
 				break;
-      case REACT_LAZY_TYPE:
-        fiberTag = LazyComponent
+			case REACT_LAZY_TYPE:
+				fiberTag = LazyComponent;
+				break;
 			default:
 				console.warn('未定义的type类型', element);
 				break;

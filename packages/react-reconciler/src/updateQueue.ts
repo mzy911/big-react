@@ -3,6 +3,7 @@ import { Action } from 'shared/ReactTypes';
 import { isSubsetOfLanes, Lane, mergeLanes, NoLane } from './fiberLanes';
 import { FiberNode } from './fiber';
 
+// update 对象
 export interface Update<State> {
 	action: Action<State>;
 	lane: Lane;
@@ -11,6 +12,7 @@ export interface Update<State> {
 	eagerState: State | null;
 }
 
+// update 对象队列
 export interface UpdateQueue<State> {
 	shared: {
 		pending: Update<State> | null;
@@ -18,11 +20,12 @@ export interface UpdateQueue<State> {
 	dispatch: Dispatch<State> | null;
 }
 
+// 创建 update 对象
 export const createUpdate = <State>(
 	action: Action<State>,
 	lane: Lane,
 	hasEagerState = false,
-	eagerState = null
+	eagerState = null as State | null
 ): Update<State> => {
 	return {
 		action,
@@ -33,6 +36,7 @@ export const createUpdate = <State>(
 	};
 };
 
+// 创建 update 对象队列
 export const createUpdateQueue = <State>() => {
 	return {
 		shared: {
@@ -42,6 +46,7 @@ export const createUpdateQueue = <State>() => {
 	} as UpdateQueue<State>;
 };
 
+// 向 UpdateQueue 中添加 Update
 export const enqueueUpdate = <State>(
 	updateQueue: UpdateQueue<State>,
 	update: Update<State>,
@@ -80,9 +85,10 @@ export function basicStateReducer<State>(
 	}
 }
 
+// "消费"(执行) Update 的方法
 export const processUpdateQueue = <State>(
-	baseState: State,
-	pendingUpdate: Update<State> | null,
+	baseState: State, // 初始状态
+	pendingUpdate: Update<State> | null, // 要执行的 update 对象
 	renderLane: Lane,
 	onSkipUpdate?: <State>(update: Update<State>) => void
 ): {
@@ -127,13 +133,14 @@ export const processUpdateQueue = <State>(
 					newBaseQueueLast = clone;
 				}
 			} else {
-				// 优先级足够
+				// 优先级足够，创建 update 对象
 				if (newBaseQueueLast !== null) {
 					const clone = createUpdate(pending.action, NoLane);
 					newBaseQueueLast.next = clone;
 					newBaseQueueLast = clone;
 				}
 
+				// 执行 update
 				const action = pending.action;
 				if (pending.hasEagerState) {
 					newState = pending.eagerState;
