@@ -75,10 +75,12 @@ const SuspendedOnDeprecatedThrowPromise = 4;
 let workInProgressSuspendedReason: SuspendedReason = NotSuspended;
 let workInProgressThrownValue: any = null;
 
-// 初始化操作：让 workInProgress 指向需要遍历的第一个 FiberNode
+// 开始渲染前初始化状态
 function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 	root.finishedLane = NoLane;
 	root.finishedWork = null;
+
+	// 创建 workInProgress
 	workInProgress = createWorkInProgress(root.current, {});
 	wipRootRenderLane = lane;
 
@@ -87,8 +89,9 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 	workInProgressThrownValue = null;
 }
 
+// 在 Fiber 中调度任务
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
-	// fiberRootNode
+	// 找到根节点
 	const root = markUpdateLaneFromFiberToRoot(fiber, lane);
 	markRootUpdated(root, lane);
 	ensureRootIsScheduled(root);
@@ -150,6 +153,7 @@ export function markRootUpdated(root: FiberRootNode, lane: Lane) {
 	root.pendingLanes = mergeLanes(root.pendingLanes, lane);
 }
 
+// 从当前 Fiber 节点查到到根节点
 export function markUpdateLaneFromFiberToRoot(fiber: FiberNode, lane: Lane) {
 	let node = fiber;
 	let parent = node.return;
@@ -254,7 +258,7 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
 let c = 0;
 
 /**
- * 开始执行更新过程，以下方法触发此函数
+ * 开始进行渲染更新(递归两阶段)，以下方法触发此函数
  * ReactDOM.createRoot().render、ReactDOM.render
  * this.setState
  * useState
@@ -266,7 +270,7 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
 	}
 
 	if (wipRootRenderLane !== lane) {
-		// 初始化
+		// 开始渲染前初始化状态
 		prepareFreshStack(root, lane);
 	}
 

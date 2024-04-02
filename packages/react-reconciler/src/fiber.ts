@@ -135,25 +135,31 @@ export class FiberRootNode {
 	}
 }
 
+// 创建 workInProgress：向外返回 current.alternate
 export const createWorkInProgress = (
 	current: FiberNode,
 	pendingProps: Props
 ): FiberNode => {
+	// 向外暴露 wip
 	let wip = current.alternate;
+
 	if (wip === null) {
-		// mount
+		// mount 阶段
 		wip = new FiberNode(current.tag, pendingProps, current.key);
 		wip.stateNode = current.stateNode;
 
 		wip.alternate = current;
 		current.alternate = wip;
 	} else {
-		// update
+		// update 阶段
 		wip.pendingProps = pendingProps;
+		// 先清除副作用，可能是上次遗留下来的
 		wip.flags = NoFlags;
 		wip.subtreeFlags = NoFlags;
 		wip.deletions = null;
 	}
+
+	// 获取 current 上的属性
 	wip.type = current.type;
 	wip.updateQueue = current.updateQueue;
 	wip.child = current.child;
