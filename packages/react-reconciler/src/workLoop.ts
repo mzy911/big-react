@@ -204,10 +204,13 @@ function performConcurrentWorkOnRoot(
 			}
 			return performConcurrentWorkOnRoot.bind(null, root);
 		case RootCompleted:
+			// 获取到带有 Flags 完成的 workInProgressFiber
 			const finishedWork = root.current.alternate;
 			root.finishedWork = finishedWork;
 			root.finishedLane = lane;
 			wipRootRenderLane = NoLane;
+
+			// 进入 commit 阶段
 			commitRoot(root);
 			break;
 		case RootDidNotComplete:
@@ -318,6 +321,8 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
 	return RootCompleted;
 }
 
+// 1、根据 renderRoot 阶段生成的 wip（带有 Flags）
+// 2、根据 Flags 执行具体的 DOM 操作
 function commitRoot(root: FiberRootNode) {
 	const finishedWork = root.finishedWork;
 

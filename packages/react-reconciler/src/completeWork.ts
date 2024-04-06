@@ -56,10 +56,10 @@ export const completeWork = (wip: FiberNode): void => {
 			} else {
 				// mount
 				// 1. 构建DOM
-				// const instance = createInstance(wip.type, newProps);
 				const instance = createInstance(wip.type, newProps);
 				// 2. 将DOM插入到DOM树中
 				appendAllChildren(instance, wip);
+
 				wip.stateNode = instance;
 				// 标记Ref
 				if (wip.ref !== null) {
@@ -128,10 +128,12 @@ export const completeWork = (wip: FiberNode): void => {
 function appendAllChildren(parent: Container | Instance, wip: FiberNode) {
 	let node = wip.child;
 
+	// 递归插入子节点
 	while (node !== null) {
 		if (node.tag === HostComponent || node.tag === HostText) {
 			appendInitialChild(parent, node?.stateNode);
 		} else if (node.child !== null) {
+			// 一直向下查找
 			node.child.return = node;
 			node = node.child;
 			continue;
@@ -141,22 +143,28 @@ function appendAllChildren(parent: Container | Instance, wip: FiberNode) {
 			return;
 		}
 
+		// 兄弟节点
 		while (node.sibling === null) {
 			if (node.return === null || node.return === wip) {
 				return;
 			}
 			node = node?.return;
 		}
+
+		// 向上查找
 		node.sibling.return = node.return;
 		node = node.sibling;
 	}
 }
 
+// 利用 completeWork 向上遍历的过程，将 FiberNode 的 Flags 冒泡到父 FiberNode
 function bubbleProperties(wip: FiberNode) {
+	// 子树上的 Flags
 	let subtreeFlags = NoFlags;
 	let child = wip.child;
 	let newChildLanes = NoLanes;
 
+	// 利用循环向上遍历
 	while (child !== null) {
 		subtreeFlags |= child.subtreeFlags;
 		subtreeFlags |= child.flags;
@@ -170,6 +178,8 @@ function bubbleProperties(wip: FiberNode) {
 		child.return = wip;
 		child = child.sibling;
 	}
+
+	// 挂载 subtreeFlags 属性
 	wip.subtreeFlags |= subtreeFlags;
 	wip.childLanes = newChildLanes;
 }

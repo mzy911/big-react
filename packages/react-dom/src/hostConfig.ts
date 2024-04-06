@@ -7,7 +7,7 @@ export type Container = Element;
 export type Instance = Element;
 export type TextInstance = Text;
 
-// export const createInstance = (type: string, props: any): Instance => {
+// 创建 DOM 节点
 export const createInstance = (type: string, props: Props): Instance => {
 	// TODO 处理props
 	const element = document.createElement(type) as unknown;
@@ -15,6 +15,7 @@ export const createInstance = (type: string, props: Props): Instance => {
 	return element as DOMElement;
 };
 
+// 向父元素中插入子元素
 export const appendInitialChild = (
 	parent: Instance | Container,
 	child: Instance
@@ -22,6 +23,7 @@ export const appendInitialChild = (
 	parent.appendChild(child);
 };
 
+// 创建文本节点
 export const createTextInstance = (content: string) => {
 	return document.createTextNode(content);
 };
