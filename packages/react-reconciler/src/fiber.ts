@@ -182,6 +182,7 @@ export const createWorkInProgress = (
 	return wip;
 };
 
+// 基于 Element 创建 Fiber
 export function createFiberFromElement(element: ReactElementType): FiberNode {
 	const { type, key, props, ref } = element;
 	let fiberTag: WorkTag = FunctionComponent;
@@ -209,6 +210,8 @@ export function createFiberFromElement(element: ReactElementType): FiberNode {
 	} else if (typeof type !== 'function' && __DEV__) {
 		console.warn('为定义的type类型', element);
 	}
+
+	// 创建 Fiber 并返回
 	const fiber = new FiberNode(fiberTag, props, key);
 	fiber.type = type;
 	fiber.ref = ref;

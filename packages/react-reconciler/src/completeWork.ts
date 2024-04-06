@@ -30,6 +30,11 @@ function markRef(fiber: FiberNode) {
 	fiber.flags |= Ref;
 }
 
+/**
+ * 递归中的归阶段
+ * 1、构建离屏 DOM 树
+ * 2、标记副作用 flags：标记属性相关的如 update
+ */
 export const completeWork = (wip: FiberNode): void => {
 	// 递归中的归
 
@@ -39,7 +44,7 @@ export const completeWork = (wip: FiberNode): void => {
 	switch (wip.tag) {
 		case HostComponent:
 			if (current !== null && wip.stateNode) {
-				// TODO update
+				// update
 				// 1. props是否变化 {onClick: xx} {onClick: xxx}
 				// 2. 变了 Update flag
 				// className style
@@ -72,6 +77,7 @@ export const completeWork = (wip: FiberNode): void => {
 					markUpdate(wip);
 				}
 			} else {
+				// mount
 				// 1. 构建DOM
 				const instance = createTextInstance(newProps.content);
 				wip.stateNode = instance;

@@ -11,6 +11,8 @@ import { Fragment, HostText } from './workTags';
 
 type ExistingChildren = Map<string | number, FiberNode>;
 
+// 1、生成子节点
+// 2、标记 flags
 function ChildReconciler(shouldTrackEffects: boolean) {
 	function deleteChild(returnFiber: FiberNode, childToDelete: FiberNode) {
 		if (!shouldTrackEffects) {
@@ -108,7 +110,9 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		return fiber;
 	}
 
+	// 插入单一的节点
 	function placeSingleChild(fiber: FiberNode) {
+		// 1、有副作用、2、首屏渲染：fiber.alternate 为 currentFiber
 		if (shouldTrackEffects && fiber.alternate === null) {
 			fiber.flags |= Placement;
 		}
@@ -252,6 +256,12 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		return null;
 	}
 
+	/**
+	 * 此处为闭包函数，向外返回 reconcileChildFibers 函数
+	 * 1、returnFiber：父节点 FiberNode
+	 * 2、currentFiber：子节点 FiberNode
+	 * 3、newChild：子节点 Element
+	 */
 	return function reconcileChildFibers(
 		returnFiber: FiberNode,
 		currentFiber: FiberNode | null,
@@ -331,6 +341,7 @@ function updateFragment(
 	return fiber;
 }
 
+// 根据 mound、updte 来区分是否追踪副作用
 export const reconcileChildFibers = ChildReconciler(true);
 export const mountChildFibers = ChildReconciler(false);
 

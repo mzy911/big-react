@@ -45,7 +45,11 @@ export function markWipReceivedUpdate() {
 	didReceiveUpdate = true;
 }
 
-// 递归中的递阶段：比较、返回子fiberNode
+/**
+ * 递归中的递阶段
+ * 1、生成 wip FiberNode
+ * 2、标记副作用 flags：此处只标记结构相关的如 "新增、删除"、不标记属性相关的如 update
+ */
 export const beginWork = (wip: FiberNode, renderLane: Lane) => {
 	// bailout策略
 	didReceiveUpdate = false;
@@ -88,12 +92,22 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
 
 	// 比较，返回子fiberNode
 	switch (wip.tag) {
+		// 根节点
 		case HostRoot:
+			// 1、计算状态的最新值
+			// 2、创建子 FiberNode
 			return updateHostRoot(wip, renderLane);
+		// 元素节点
 		case HostComponent:
+			// 1、不能触发更新
+			// 2、只能创建子 FiberNode
 			return updateHostComponent(wip);
+		// 文本节点
 		case HostText:
+			// 1、没有子节点
+			// 2、递的阶段到了叶子节点，直接返回 null
 			return null;
+		// 函数节点
 		case FunctionComponent:
 			return updateFunctionComponent(wip, wip.type, renderLane);
 		case Fragment:
@@ -241,6 +255,7 @@ function updateHostRoot(wip: FiberNode, renderLane: Lane) {
 
 	const prevChildren = wip.memoizedState;
 
+	// 1、计算状态的最新值：此处的 memoizedState 为 Element
 	const { memoizedState } = processUpdateQueue(baseState, pending, renderLane);
 	wip.memoizedState = memoizedState;
 
@@ -252,15 +267,20 @@ function updateHostRoot(wip: FiberNode, renderLane: Lane) {
 		}
 	}
 
+	// 获取子 reactElement
 	const nextChildren = wip.memoizedState;
 	if (prevChildren === nextChildren) {
 		return bailoutOnAlreadyFinishedWork(wip, renderLane);
 	}
+	// diff 过程
 	reconcileChildren(wip, nextChildren);
+
+	// 2、返回子 FiberNode
 	return wip.child;
 }
 
 function updateHostComponent(wip: FiberNode) {
+	// 例如：创建 div 下的 span 节点 <div><span>...</span></div>
 	const nextProps = wip.pendingProps;
 	const nextChildren = nextProps.children;
 	markRef(wip.alternate, wip);
@@ -268,6 +288,11 @@ function updateHostComponent(wip: FiberNode) {
 	return wip.child;
 }
 
+// 1、diff 过程
+// 2、生成新的子 FiberNode ===> wip.child
+//    a、进入 A 的 beginWork 时
+//    b、通过对比 B 的 current FiberNode 与 reactElement
+//    c、生成对应的 wip FiberNode
 function reconcileChildren(wip: FiberNode, children?: ReactElementType) {
 	const current = wip.alternate;
 

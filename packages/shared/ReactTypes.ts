@@ -4,6 +4,7 @@ export type Ref = { current: any } | ((instance: any) => void);
 export type Props = any;
 export type ElementType = any;
 
+// React 中 Element 对应的接口类型
 export interface ReactElementType {
 	$$typeof: symbol | number;
 	type: ElementType;
