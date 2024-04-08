@@ -3,5 +3,5 @@ import reactNoopRendererConfig from './react-noop-renderer.config';
 import reactConfig from './react.config';
 
 export default () => {
-	return [...reactConfig, ...reactDomConfig, ...reactNoopRendererConfig];
+  return [...reactConfig, ...reactDomConfig, ...reactNoopRendererConfig];
 };

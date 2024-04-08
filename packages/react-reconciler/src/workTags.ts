@@ -1,14 +1,14 @@
 export type WorkTag =
-	| typeof FunctionComponent
-	| typeof HostRoot
-	| typeof HostComponent
-	| typeof HostText
-	| typeof Fragment
-	| typeof ContextProvider
-	| typeof SuspenseComponent
-	| typeof OffscreenComponent
-	| typeof LazyComponent
-	| typeof MemoComponent;
+  | typeof FunctionComponent
+  | typeof HostRoot
+  | typeof HostComponent
+  | typeof HostText
+  | typeof Fragment
+  | typeof ContextProvider
+  | typeof SuspenseComponent
+  | typeof OffscreenComponent
+  | typeof LazyComponent
+  | typeof MemoComponent;
 
 /**
  * FiberNode 类型
