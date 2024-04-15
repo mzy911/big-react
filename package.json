@@ -51,7 +51,8 @@
   "json-comments": {
     "tips": "请安装JSONComments插件为JSON文件提供注释功能, 详见: https://github.com/zhangfisher/json_comments_extension",
     "package.json": {
-      "dependencies.@rollup/plugin-replace": "为开发环境新增 _DEV_标示"
+      "dependencies.@rollup/plugin-replace": "为开发环境新增 _DEV_标示",
+      "scripts.demo": "启动 demo"
     }
   }
 }

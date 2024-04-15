@@ -24,10 +24,11 @@ export default [
         format: 'umd'
       }
     ],
+    // 打包 react-dom 时，不把 react、scheduler 打进去
     external: [...Object.keys(peerDependencies), 'scheduler'],
     plugins: [
       ...getBaseRollupPlugins(),
-      // webpack resolve alias
+      // rollup 打包别名  直接引入如： import { Container } from 'hostConfig';
       alias({
         entries: {
           hostConfig: `${pkgPath}/src/hostConfig.ts`

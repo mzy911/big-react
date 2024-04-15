@@ -18,11 +18,13 @@
 		"noImplicitReturns": false,
 		"skipLibCheck": true,
 		"strictNullChecks": false,
+		// 编译器查找 type definition 文件的根路径列表。默认只包含 node_modules/@types 路径。
+		// typeRoots：'',
 		// 配置路径解析：baseUrl + paths
 		"baseUrl": "./packages",
+		// 避免eslint 报错
 		"paths": {
 			"hostConfig": ["./react-dom/src/hostConfig.ts"],
-			"*": ["packages/typings/*"]
 		}
 	}
 }

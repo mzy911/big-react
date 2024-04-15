@@ -10,6 +10,7 @@ import {
   unHideInstance,
   unHideTextInstance
 } from 'hostConfig';
+
 import { FiberNode, FiberRootNode, PendingPassiveEffects } from './fiber';
 import {
   ChildDeletion,
@@ -67,7 +68,7 @@ export const commitEffects = (
   };
 };
 
-// commit 的 mutation 阶段的副作用函数
+// 找到存在 Effect 节点的元素，执行对应操作
 const commitMutationEffectsOnFiber = (
   finishedWork: FiberNode,
   root: FiberRootNode
@@ -503,6 +504,7 @@ function getHostParent(fiber: FiberNode): Container | null {
   return null;
 }
 
+// 将当前节点插入到 container 中
 function insertOrAppendPlacementNodeIntoContainer(
   finishedWork: FiberNode,
   hostParent: Container,

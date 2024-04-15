@@ -28,7 +28,9 @@ import { REACT_CONTEXT_TYPE } from 'shared/ReactSymbols';
 import { markWipReceivedUpdate } from './beginWork';
 import { readContext as readContextOrigin } from './fiberContext';
 
+// 当前正在 render 的 Fiber
 let currentlyRenderingFiber: FiberNode | null = null;
+// 当前正在处理的 Hook
 let workInProgressHook: Hook | null = null;
 let currentHook: Hook | null = null;
 let renderLane: Lane = NoLane;
@@ -40,9 +42,9 @@ function readContext<Value>(context: ReactContext<Value>): Value {
   return readContextOrigin(consumer, context);
 }
 interface Hook {
-  memoizedState: any;
+  memoizedState: any; // 保存 Hook 自身的 state 值
   updateQueue: unknown;
-  next: Hook | null;
+  next: Hook | null; // 指向下一个hooks【
   baseState: any;
   baseQueue: Update<any> | null;
 }
@@ -433,6 +435,7 @@ function dispatchSetState<State>(
   scheduleUpdateOnFiber(fiber, lane);
 }
 
+// 获取当前 Hook 对应的状态
 function mountWorkInProgressHook(): Hook {
   const hook: Hook = {
     memoizedState: null,

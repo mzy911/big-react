@@ -14,6 +14,7 @@ export interface Dispatcher {
 
 export type Dispatch<State> = (action: Action<State>) => void;
 
+// 当前使用 Hooks 的集合，分为 mount、update、hook上下文中
 const currentDispatcher: { current: Dispatcher | null } = {
   current: null
 };

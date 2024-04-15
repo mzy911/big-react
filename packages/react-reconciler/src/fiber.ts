@@ -42,7 +42,7 @@ export class FiberNode {
   index: number;
 
   memoizedProps: Props | null;
-  memoizedState: any;
+  memoizedState: any; // 以链表的形式保存 Hooks：useState--> useEffect--> useState....
   alternate: FiberNode | null;
   flags: Flags;
   subtreeFlags: Flags;
@@ -72,7 +72,7 @@ export class FiberNode {
     // 作为工作单元
     this.pendingProps = pendingProps; // 工作开始前的 props
     this.memoizedProps = null; // 工作结束后的 props
-    this.memoizedState = null;
+    this.memoizedState = null; // 重置
     this.updateQueue = null;
     this.alternate = null;
 
