@@ -100,6 +100,7 @@ export function renderWithHooks(
   return children;
 }
 
+// mount 时 Hooks 集合
 const HooksDispatcherOnMount: Dispatcher = {
   useState: mountState,
   useEffect: mountEffect,
@@ -111,6 +112,7 @@ const HooksDispatcherOnMount: Dispatcher = {
   useCallback: mountCallback
 };
 
+// update 时 Hooks 集合
 const HooksDispatcherOnUpdate: Dispatcher = {
   useState: updateState,
   useEffect: updateEffect,
@@ -338,11 +340,13 @@ function updateWorkInProgressHook(): Hook {
   return workInProgressHook;
 }
 
+// useState 的实现
 function mountState<State>(
   initialState: (() => State) | State
 ): [State, Dispatch<State>] {
   // 找到当前useState对应的hook数据
   const hook = mountWorkInProgressHook();
+
   let memoizedState;
   if (initialState instanceof Function) {
     memoizedState = initialState();
@@ -354,10 +358,11 @@ function mountState<State>(
   hook.memoizedState = memoizedState;
   hook.baseState = memoizedState;
 
-  // @ts-ignore
+  // @ts-ignore：
   const dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
   queue.dispatch = dispatch;
   queue.lastRenderedState = memoizedState;
+
   return [memoizedState, dispatch];
 }
 
@@ -399,6 +404,7 @@ function startTransition(setPending: Dispatch<boolean>, callback: () => void) {
   currentBatchConfig.transition = prevTransition;
 }
 
+// 创建 dispatch 方法
 function dispatchSetState<State>(
   fiber: FiberNode,
   updateQueue: FCUpdateQueue<State>,
@@ -430,8 +436,10 @@ function dispatchSetState<State>(
     }
   }
 
+  // 将 update 插入到队列中
   enqueueUpdate(updateQueue, update, fiber, lane);
 
+  // 执行调度操作
   scheduleUpdateOnFiber(fiber, lane);
 }
 
@@ -453,7 +461,7 @@ function mountWorkInProgressHook(): Hook {
       currentlyRenderingFiber.memoizedState = workInProgressHook;
     }
   } else {
-    // mount时 后续的hook
+    // mount时 后续的hook（使用 next 进行连接）
     workInProgressHook.next = hook;
     workInProgressHook = hook;
   }

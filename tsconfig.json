@@ -1,5 +1,6 @@
 {
 	"compileOnSave": true,
+	// 指定打包入口
 	"include": ["./packages/**/*"],
 	"compilerOptions": {
 		"target": "ESNext",

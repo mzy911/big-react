@@ -81,10 +81,13 @@ const commitMutationEffectsOnFiber = (
     finishedWork.flags &= ~Placement;
   }
 
+  // 更新节点
   if ((flags & Update) !== NoFlags) {
     commitUpdate(finishedWork);
     finishedWork.flags &= ~Update;
   }
+
+  // 删除节点
   if ((flags & ChildDeletion) !== NoFlags) {
     const deletions = finishedWork.deletions;
     if (deletions !== null) {
@@ -363,6 +366,7 @@ function recordHostChildrenToDelete(
   // 2. 每找到一个 host节点，判断下这个节点是不是 1 找到那个节点的兄弟节点
 }
 
+// commit 删除
 function commitDeletion(childToDelete: FiberNode, root: FiberRootNode) {
   const rootChildrenToDelete: FiberNode[] = [];
 
@@ -371,6 +375,7 @@ function commitDeletion(childToDelete: FiberNode, root: FiberRootNode) {
     switch (unmountFiber.tag) {
       case HostComponent:
         recordHostChildrenToDelete(rootChildrenToDelete, unmountFiber);
+        // 解绑 Ref
         safelyDetachRef(unmountFiber);
         return;
       case HostText:

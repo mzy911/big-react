@@ -25,6 +25,7 @@ export interface DOMElement extends Element {
   [elementPropsKey]: Props;
 }
 
+// 给 DOM 绑定 事件
 // dom[xxx] = reactElemnt props
 export function updateFiberProps(node: DOMElement, props: Props) {
   node[elementPropsKey] = props;
@@ -43,6 +44,7 @@ export function initEvent(container: Container, eventType: string) {
   });
 }
 
+// 合成事件
 function createSyntheticEvent(e: Event) {
   const syntheticEvent = e as SyntheticEvent;
   syntheticEvent.__stopPropagation = false;
@@ -104,6 +106,7 @@ function getEventCallbackNameFromEventType(
   }[eventType];
 }
 
+// 模拟实现：事件的捕获、冒泡
 function collectPaths(
   targetElement: DOMElement,
   container: Container,
@@ -125,9 +128,10 @@ function collectPaths(
           const eventCallback = elementProps[callbackName];
           if (eventCallback) {
             if (i === 0) {
-              // capture
+              // 捕获从前插入
               paths.capture.unshift(eventCallback);
             } else {
+              // 冒泡从后插入
               paths.bubble.push(eventCallback);
             }
           }

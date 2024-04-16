@@ -14,18 +14,23 @@ type ExistingChildren = Map<string | number, FiberNode>;
 // 1、生成子节点
 // 2、标记 flags
 function ChildReconciler(shouldTrackEffects: boolean) {
+  // 删除子节点
   function deleteChild(returnFiber: FiberNode, childToDelete: FiberNode) {
     if (!shouldTrackEffects) {
       return;
     }
     const deletions = returnFiber.deletions;
     if (deletions === null) {
+      // 添加要删除的 childs
       returnFiber.deletions = [childToDelete];
+      // 标记 flags
       returnFiber.flags |= ChildDeletion;
     } else {
+      // 添加要删除的 childs
       deletions.push(childToDelete);
     }
   }
+
   function deleteRemainingChildren(
     returnFiber: FiberNode,
     currentFirstChild: FiberNode | null
@@ -39,6 +44,8 @@ function ChildReconciler(shouldTrackEffects: boolean) {
       childToDelete = childToDelete.sibling;
     }
   }
+
+  // 协调单一 Element 节点
   function reconcileSingleElement(
     returnFiber: FiberNode,
     currentFiber: FiberNode | null,
@@ -55,10 +62,12 @@ function ChildReconciler(shouldTrackEffects: boolean) {
             if (element.type === REACT_FRAGMENT_TYPE) {
               props = element.props.children;
             }
-            // type相同
+
+            // type相同：复用
             const existing = useFiber(currentFiber, props);
             existing.return = returnFiber;
-            // 当前节点可复用，标记剩下的节点删除
+
+            // 当前节点可复用，标记剩下的节点删除(A1B1C1-->A1)
             deleteRemainingChildren(returnFiber, currentFiber.sibling);
             return existing;
           }
@@ -78,6 +87,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
         currentFiber = currentFiber.sibling;
       }
     }
+
     // 根据element创建fiber
     let fiber;
     if (element.type === REACT_FRAGMENT_TYPE) {
@@ -88,6 +98,8 @@ function ChildReconciler(shouldTrackEffects: boolean) {
     fiber.return = returnFiber;
     return fiber;
   }
+
+  // 协调单一 text 节点
   function reconcileSingleTextNode(
     returnFiber: FiberNode,
     currentFiber: FiberNode | null,
@@ -102,9 +114,13 @@ function ChildReconciler(shouldTrackEffects: boolean) {
         deleteRemainingChildren(returnFiber, currentFiber.sibling);
         return existing;
       }
+
+      // 否则删除当前节点
       deleteChild(returnFiber, currentFiber);
       currentFiber = currentFiber.sibling;
     }
+
+    // 创建新的 text 节点
     const fiber = new FiberNode(HostText, { content }, null);
     fiber.return = returnFiber;
     return fiber;
@@ -119,6 +135,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
     return fiber;
   }
 
+  // 协调多节点
   function reconcileChildrenArray(
     returnFiber: FiberNode,
     currentFirstChild: FiberNode | null,

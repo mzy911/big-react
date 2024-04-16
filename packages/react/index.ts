@@ -52,7 +52,9 @@ export const useCallback: Dispatcher['useCallback'] = (callback, deps) => {
   return dispatcher.useCallback(callback, deps);
 };
 
-// 内部数据共享层：Reconciler中调用Hooks <===>  内部数据共享  <===> React
+// 1、内部数据共享层：Reconciler中调用Hooks <===>  内部数据共享  <===> React
+// 2、外部通过 React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED 获取，并且保存在 internals 中
+// 3、通过 internals.currentDispatcher 在不同的时期，进行赋值
 export const __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = {
   currentDispatcher,
   currentBatchConfig

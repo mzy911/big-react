@@ -22,6 +22,7 @@ import { popProvider } from './fiberContext';
 import { popSuspenseHandler } from './suspenseContext';
 import { mergeLanes, NoLanes } from './fiberLanes';
 
+// 标记更新
 function markUpdate(fiber: FiberNode) {
   fiber.flags |= Update;
 }
