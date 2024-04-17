@@ -97,11 +97,14 @@ const commitMutationEffectsOnFiber = (
     }
     finishedWork.flags &= ~ChildDeletion;
   }
+
+  // 收集：useEffect 的回调函数
   if ((flags & PassiveEffect) !== NoFlags) {
     // 收集回调
     commitPassiveEffect(finishedWork, root, 'update');
     finishedWork.flags &= ~PassiveEffect;
   }
+
   if ((flags & Ref) !== NoFlags && tag === HostComponent) {
     safelyDetachRef(finishedWork);
   }
@@ -280,6 +283,7 @@ function gethostSibling(fiber: FiberNode) {
   }
 }
 
+// 收集回调;
 function commitPassiveEffect(
   fiber: FiberNode,
   root: FiberRootNode,
@@ -292,6 +296,7 @@ function commitPassiveEffect(
   ) {
     return;
   }
+
   const updateQueue = fiber.updateQueue as FCUpdateQueue<any>;
   if (updateQueue !== null) {
     if (updateQueue.lastEffect === null && __DEV__) {

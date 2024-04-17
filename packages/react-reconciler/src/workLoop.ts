@@ -18,6 +18,7 @@ import {
   HostEffectMask,
   MutationMask,
   NoFlags,
+  PassiveEffect,
   PassiveMask
 } from './fiberFlags';
 import {
@@ -34,8 +35,8 @@ import {
 import { flushSyncCallbacks, scheduleSyncCallback } from './syncTaskQueue';
 import { HostRoot } from './workTags';
 import {
-  unstable_scheduleCallback as scheduleCallback,
-  unstable_NormalPriority as NormalPriority,
+  unstable_scheduleCallback as scheduleCallback, // 调度回调函数
+  unstable_NormalPriority as NormalPriority, // 优先级
   unstable_shouldYield,
   unstable_cancelCallback
 } from 'scheduler';
@@ -49,6 +50,7 @@ import { resetHooksOnUnwind } from './fiberHooks';
 let workInProgress: FiberNode | null = null;
 // 本次更新的 lane
 let wipRootRenderLane: Lane = NoLane;
+// 是否正在调度执行 PassiveEffect
 let rootDoesHasPassiveEffects = false;
 
 type RootExitStatus = number;
@@ -367,7 +369,9 @@ function commitRoot(root: FiberRootNode) {
   ) {
     if (!rootDoesHasPassiveEffects) {
       rootDoesHasPassiveEffects = true;
-      // 调度副作用
+      // 调度副作用：
+      // 1、以 NormalPriority 优先级进行调度
+      // 2、在 setTimeout 中被执行的副作用函数 flushPassiveEffects
       scheduleCallback(NormalPriority, () => {
         // 执行副作用
         flushPassiveEffects(root.pendingPassiveEffects);
@@ -403,14 +407,22 @@ function commitRoot(root: FiberRootNode) {
   ensureRootIsScheduled(root);
 }
 
+// 执行副作用：本次更新的任何create回调函数都必须在上一次更新的destory回到函数后执行
+// 整体执行流程包括：
+// 1、遍历effect
+// 2、首先触发所有unmount effect，且对于某个fiber，如果触发了unmount destroy，本次更新不会再触发update create
+// 3、触发所有上次更新的destroy
+// 4、触发所有这次更新的create
 function flushPassiveEffects(pendingPassiveEffects: PendingPassiveEffects) {
   let didFlushPassiveEffect = false;
+  // 先执行 unmount 的副作用函数
   pendingPassiveEffects.unmount.forEach((effect) => {
     didFlushPassiveEffect = true;
     commitHookEffectListUnmount(Passive, effect);
   });
   pendingPassiveEffects.unmount = [];
 
+  // 再执行 update 副作用函数；执行两次、本次更新的任何create回调函数都必须在上一次更新的destory回到函数后执行
   pendingPassiveEffects.update.forEach((effect) => {
     didFlushPassiveEffect = true;
     commitHookEffectListDestroy(Passive | HookHasEffect, effect);
@@ -420,6 +432,8 @@ function flushPassiveEffects(pendingPassiveEffects: PendingPassiveEffects) {
     commitHookEffectListCreate(Passive | HookHasEffect, effect);
   });
   pendingPassiveEffects.update = [];
+
+  // 回调函数中，还有可能有新的更新；继续执行更新流程
   flushSyncCallbacks();
   return didFlushPassiveEffect;
 }

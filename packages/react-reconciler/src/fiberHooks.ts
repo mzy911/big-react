@@ -173,6 +173,7 @@ function updateEffect(create: EffectCallback | void, deps: HookDeps | void) {
   }
 }
 
+// 浅比较
 function areHookInputsEqual(nextDeps: HookDeps, prevDeps: HookDeps) {
   if (prevDeps === null || nextDeps === null) {
     return false;
