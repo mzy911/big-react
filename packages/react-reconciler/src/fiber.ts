@@ -102,10 +102,10 @@ export class FiberRootNode {
   container: Container; // 容器"根节点"，不一定为DOM
   current: FiberNode; // 指向 hostRootFiber
   finishedWork: FiberNode | null; // 指向更新完成之后的 hostRootFiber
-  pendingLanes: Lanes;
-  suspendedLanes: Lanes;
+  pendingLanes: Lanes; // 未被消费的 lane 集合
+  suspendedLanes: Lanes; // 本次更新消费的 lane
   pingedLanes: Lanes;
-  finishedLane: Lane;
+  finishedLane: Lane; // 本次更新消费的 lane
   pendingPassiveEffects: PendingPassiveEffects;
 
   callbackNode: CallbackNode | null;

@@ -54,7 +54,7 @@ export interface Effect {
   create: EffectCallback | void;
   destroy: EffectCallback | void;
   deps: HookDeps;
-  next: Effect | null;
+  next: Effect | null; // hooks 本身就有 next，但是 effect 中也包含 next 指向下一个 effect
 }
 
 export interface FCUpdateQueue<State> extends UpdateQueue<State> {
@@ -124,9 +124,11 @@ const HooksDispatcherOnUpdate: Dispatcher = {
   useCallback: updateCallback
 };
 
+// 挂载时 Effect
 function mountEffect(create: EffectCallback | void, deps: HookDeps | void) {
   const hook = mountWorkInProgressHook();
   const nextDeps = deps === undefined ? null : deps;
+  // mount 时要触发 PassiveEffect
   (currentlyRenderingFiber as FiberNode).flags |= PassiveEffect;
 
   hook.memoizedState = pushEffect(
@@ -137,6 +139,7 @@ function mountEffect(create: EffectCallback | void, deps: HookDeps | void) {
   );
 }
 
+// 更新时 Effect
 function updateEffect(create: EffectCallback | void, deps: HookDeps | void) {
   const hook = updateWorkInProgressHook();
   const nextDeps = deps === undefined ? null : deps;
@@ -183,6 +186,7 @@ function areHookInputsEqual(nextDeps: HookDeps, prevDeps: HookDeps) {
   return true;
 }
 
+// efftct 之间会使用 next 进行链接
 function pushEffect(
   hookFlags: Flags,
   create: EffectCallback | void,

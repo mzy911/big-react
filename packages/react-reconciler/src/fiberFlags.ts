@@ -6,7 +6,7 @@ export const Placement = 0b0000001; // 新增
 export const Update = 0b0000010; // 更新
 export const ChildDeletion = 0b0000100; // 删除
 
-export const PassiveEffect = 0b0001000;
+export const PassiveEffect = 0b0001000; // 当前 fiber 上本次更新，需要触发 useEffect 的情况
 export const Ref = 0b0010000;
 
 export const Visibility = 0b0100000;
@@ -21,6 +21,7 @@ export const MutationMask =
   Placement | Update | ChildDeletion | Ref | Visibility;
 export const LayoutMask = Ref;
 
+// 触发 useEffect 的情况
 export const PassiveMask = PassiveEffect | ChildDeletion;
 
 export const HostEffectMask =

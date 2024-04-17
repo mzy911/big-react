@@ -451,13 +451,16 @@ const commitPlacement = (finishedWork: FiberNode) => {
   }
 };
 
+// 查找"有效的兄弟节点"，组件包裹时查找兄弟节点比较麻烦
 function getHostSibling(fiber: FiberNode) {
   let node: FiberNode = fiber;
 
   findSibling: while (true) {
+    // 子节点和兄弟节点没找到，需要向上找
     while (node.sibling === null) {
       const parent = node.return;
 
+      // 终止条件，没找到
       if (
         parent === null ||
         parent.tag === HostComponent ||
@@ -465,24 +468,33 @@ function getHostSibling(fiber: FiberNode) {
       ) {
         return null;
       }
+
       node = parent;
     }
+
+    // 遍历同级兄弟节点
     node.sibling.return = node.return;
     node = node.sibling;
 
+    // 向下遍历
+    // 非 HostText、HostComponent 节点
     while (node.tag !== HostText && node.tag !== HostComponent) {
-      // 向下遍历
+      // 不稳定节点，将要做移动
       if ((node.flags & Placement) !== NoFlags) {
         continue findSibling;
       }
+
+      // 到底，无 child
       if (node.child === null) {
         continue findSibling;
       } else {
+        // 向下
         node.child.return = node;
         node = node.child;
       }
     }
 
+    // 找到节点
     if ((node.flags & Placement) === NoFlags) {
       return node.stateNode;
     }

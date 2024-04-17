@@ -68,6 +68,7 @@ export const insertChildToContainer = (
   container.insertBefore(child, before);
 };
 
+// 判断环境中是否支持微任务，支持使用 Promise 否则使用 setTimeout
 export const scheduleMicroTask =
   typeof queueMicrotask === 'function'
     ? queueMicrotask
