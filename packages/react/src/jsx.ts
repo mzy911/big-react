@@ -8,11 +8,18 @@ import {
   ElementType
 } from 'shared/ReactTypes';
 
+/**
+ * React创建元素有两种方式
+ * 1、jsx 方式
+ * 2、React.createElement 方式
+ * 3、作为 babel 方法的调用进行转换
+ */
+
 // ReactElement
 const ReactElement = function (
   type: Type,
   key: Key,
-  ref: Ref,
+  ref: Ref | null,
   props: Props
 ): ReactElementType {
   const element = {
@@ -42,11 +49,13 @@ export const createElement = (
   ...maybeChildren: any
 ) => {
   let key: Key = null;
+  let ref: Ref | null = null;
   const props: Props = {};
-  let ref: Ref = null;
 
   for (const prop in config) {
     const val = config[prop];
+
+    // 将 'key' 对应的 val 转为字符串存储
     if (prop === 'key') {
       if (val !== undefined) {
         key = '' + val;
@@ -79,8 +88,8 @@ export const Fragment = REACT_FRAGMENT_TYPE;
 // 通过 jsx 创建 React.element
 export const jsx = (type: ElementType, config: any, maybeKey: any) => {
   let key: Key = null;
+  let ref: Ref | null = null;
   const props: Props = {};
-  let ref: Ref = null;
 
   if (maybeKey !== undefined) {
     key = '' + maybeKey;
