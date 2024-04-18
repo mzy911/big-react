@@ -1,6 +1,7 @@
 import { REACT_CONTEXT_TYPE, REACT_PROVIDER_TYPE } from 'shared/ReactSymbols';
 import { ReactContext } from 'shared/ReactTypes';
 
+// Context.Provider;
 export function createContext<T>(defaultValue: T): ReactContext<T> {
   const context: ReactContext<T> = {
     $$typeof: REACT_CONTEXT_TYPE,

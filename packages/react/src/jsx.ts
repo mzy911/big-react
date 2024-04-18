@@ -26,6 +26,7 @@ const ReactElement = function (
   return element;
 };
 
+// 判断是否为 React.element
 export function isValidElement(object: any) {
   return (
     typeof object === 'object' &&
@@ -34,6 +35,7 @@ export function isValidElement(object: any) {
   );
 }
 
+// 通过 createElement 创建 React.element
 export const createElement = (
   type: ElementType,
   config: any,
@@ -74,6 +76,7 @@ export const createElement = (
 
 export const Fragment = REACT_FRAGMENT_TYPE;
 
+// 通过 jsx 创建 React.element
 export const jsx = (type: ElementType, config: any, maybeKey: any) => {
   let key: Key = null;
   const props: Props = {};
