@@ -7,12 +7,22 @@ export type Container = Element;
 export type Instance = Element;
 export type TextInstance = Text;
 
-// 创建 DOM 节点
+/**
+ * hostConfig：操作 DOM 节点
+ */
+
+// 创建 'type' 类型的 DOM 节点
 export const createInstance = (type: string, props: Props): Instance => {
-  // TODO 处理props
   const element = document.createElement(type) as unknown;
+
+  // 设置 eleemnt.__props = props;
   updateFiberProps(element as DOMElement, props);
   return element as DOMElement;
+};
+
+// 创建文本节点
+export const createTextInstance = (content: string) => {
+  return document.createTextNode(content);
 };
 
 // 向父元素中插入子元素
@@ -23,19 +33,16 @@ export const appendInitialChild = (
   parent.appendChild(child);
 };
 
-// 创建文本节点
-export const createTextInstance = (content: string) => {
-  return document.createTextNode(content);
-};
-
 export const appendChildToContainer = appendInitialChild;
 
-// commit 的 更新
+// commit 阶段更新 udpata
 export const commitUpdate = (fiber: FiberNode) => {
   switch (fiber.tag) {
+    // 文本节点
     case HostText:
       const text = fiber.memoizedProps?.content;
       return commitTextUpdate(fiber.stateNode, text);
+    // 元素节点
     case HostComponent:
       return updateFiberProps(fiber.stateNode, fiber.memoizedProps);
     default:
@@ -46,6 +53,7 @@ export const commitUpdate = (fiber: FiberNode) => {
   }
 };
 
+// commit 阶段更新文本节点
 export const commitTextUpdate = (
   textInstance: TextInstance,
   content: string
@@ -53,6 +61,7 @@ export const commitTextUpdate = (
   textInstance.textContent = content;
 };
 
+// father 元素删除指定的 child 元素
 export const removeChild = (
   child: Instance | TextInstance,
   container: Container
@@ -60,6 +69,7 @@ export const removeChild = (
   container.removeChild(child);
 };
 
+// father 元素内在某元素之前插入新的 child
 export const insertChildToContainer = (
   child: Instance,
   container: Container,
@@ -76,20 +86,24 @@ export const scheduleMicroTask =
     ? (callback: (...args: any) => void) => Promise.resolve(null).then(callback)
     : setTimeout;
 
+// 设置 DOM 节点 display
 export const hideInstance = (instance: Instance) => {
   const style = (instance as HTMLElement).style;
   style.setProperty('display', 'none', 'important');
 };
 
+// 移除 DOM 节点 display
 export const unHideInstance = (instance: Instance) => {
   const style = (instance as HTMLElement).style;
   style.display = '';
 };
 
+// 隐藏 文本 节点
 export const hideTextInstance = (textInstance: TextInstance) => {
   textInstance.nodeValue = '';
 };
 
+// 显示 文本 节点
 export const unHideTextInstance = (
   textInstance: TextInstance,
   text: string

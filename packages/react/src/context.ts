@@ -8,6 +8,7 @@ export function createContext<T>(defaultValue: T): ReactContext<T> {
     Provider: null,
     _currentValue: defaultValue
   };
+
   context.Provider = {
     $$typeof: REACT_PROVIDER_TYPE,
     _context: context

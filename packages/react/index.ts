@@ -11,7 +11,10 @@ export { lazy } from './src/lazy';
 export { REACT_SUSPENSE_TYPE as Suspense } from 'shared/ReactSymbols';
 export { memo } from './src/memo';
 
-// Hooks 是内部调用 dispatcher 的实现
+/**
+ * react包：宿主环境无关的公用方法
+ */
+
 export const useState: Dispatcher['useState'] = (initialState) => {
   const dispatcher = resolveDispatcher();
   return dispatcher.useState(initialState);
@@ -52,6 +55,7 @@ export const useCallback: Dispatcher['useCallback'] = (callback, deps) => {
   return dispatcher.useCallback(callback, deps);
 };
 
+// 内部数据共享
 // 1、内部数据共享层：Reconciler中调用Hooks <===>  内部数据共享  <===> React
 // 2、外部通过 React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED 获取，并且保存在 internals 中
 // 3、通过 internals.currentDispatcher 在不同的时期，进行赋值

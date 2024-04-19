@@ -41,7 +41,6 @@ export function requestUpdateLane() {
 
 // 获取优先级最高的 lane
 export function getHighestPriorityLane(lanes: Lanes): Lane {
-  // 值越小优先级越高
   return lanes & -lanes;
 }
 
@@ -94,6 +93,7 @@ export function markRootSuspended(root: FiberRootNode, suspendedLane: Lane) {
   root.pingedLanes &= ~suspendedLane;
 }
 
+// 获取下一个有效的、优先级最高的 lane
 export function getNextLane(root: FiberRootNode): Lane {
   const pendingLanes = root.pendingLanes;
 
@@ -102,7 +102,7 @@ export function getNextLane(root: FiberRootNode): Lane {
   }
   let nextLane = NoLane;
 
-  // 排除掉挂起的lane
+  // 去掉挂起的lane
   const suspendedLanes = pendingLanes & ~root.suspendedLanes;
   if (suspendedLanes !== NoLanes) {
     nextLane = getHighestPriorityLane(suspendedLanes);
@@ -112,6 +112,7 @@ export function getNextLane(root: FiberRootNode): Lane {
       nextLane = getHighestPriorityLane(pingedLanes);
     }
   }
+
   return nextLane;
 }
 

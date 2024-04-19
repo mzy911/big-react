@@ -12,7 +12,7 @@ export function createRoot(container: Container) {
   //  返回 FiberRootNode;
   const root = createContainer(container);
 
-  // 返回 render 方法
+  // 返回带有 render 方法的对象
   return {
     render(element: ReactElementType) {
       // 初始化 Event

@@ -444,7 +444,7 @@ function dispatchSetState<State>(
   // 将 update 插入到队列中
   enqueueUpdate(updateQueue, update, fiber, lane);
 
-  // 执行调度操作
+  // 开始调度任务
   scheduleUpdateOnFiber(fiber, lane);
 }
 

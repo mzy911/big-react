@@ -29,30 +29,40 @@ interface FiberDependencies<Value> {
 }
 
 export class FiberNode {
-  tag: WorkTag; // FiberNode 节点类型
-  stateNode: any; // 如果 tag 为 HostComponent 则 stateNode 为 div Dom
-  type: any; // 如果 tag 为 FunctionComponent 则 type 为 FunctionComponent()=>{} 函数本身
-  pendingProps: Props;
-  key: Key;
+  // 基础属性
+  tag: WorkTag; // 节点类型（每个类型对应一个数字）
   ref: Ref | null;
+  stateNode: any; // 表示当前FiberNode对应的element组件实例
+  /**
+   * 用于标识该节点所代表的React元素或组件的类型
+   * 1、当FiberNode对应于一个React组件（无论是函数组件还是类组件）时，type字段将存储对该组件构造函数或函数组件本身的引用
+   * 2、如果FiberNode表示一个原生的DOM元素（如、等），type字段将包含一个字符串，该字符串对应于该DOM元素的标签名。例如，对于一个``元素，type值将是 "div"。
+   */
+  type: any;
+  key: Key;
 
-  return: FiberNode | null;
-  sibling: FiberNode | null;
-  child: FiberNode | null;
+  // 构成树状结构
+  return: FiberNode | null; // 父节点
+  sibling: FiberNode | null; // 兄弟节点
+  child: FiberNode | null; // 子节点
   index: number;
 
-  memoizedProps: Props | null;
-  memoizedState: any; // 以链表的形式保存 Hooks：useState--> useEffect--> useState....
-  alternate: FiberNode | null;
+  // 作为工作单元
+  pendingProps: Props; // 当前处理过程中的组件props对象
+  memoizedProps: Props | null; // 上一次渲染完成之后的props
+  memoizedState: any; // 上一次渲染的时候的state 以链表的形式保存 Hooks：useState--> useEffect--> useState....
+  updateQueue: unknown; // 该 Fiber 对应的组件产生的Update会存放在这个队列里面
+  alternate: FiberNode | null; // fiber的版本池，即记录fiber更新过程，便于恢复
+
+  // 副作用
   flags: Flags;
   subtreeFlags: Flags;
-  updateQueue: unknown;
   deletions: FiberNode[] | null;
+  dependencies: FiberDependencies<any> | null;
 
+  // 优先级
   lanes: Lanes;
   childLanes: Lanes;
-
-  dependencies: FiberDependencies<any> | null;
 
   constructor(tag: WorkTag, pendingProps: Props, key: Key) {
     // 实例
@@ -60,6 +70,7 @@ export class FiberNode {
     this.key = key || null;
     this.stateNode = null;
     this.type = null;
+    this.ref = null;
 
     // 构成树状结构
     this.return = null;
@@ -67,12 +78,10 @@ export class FiberNode {
     this.child = null;
     this.index = 0;
 
-    this.ref = null;
-
     // 作为工作单元
-    this.pendingProps = pendingProps; // 工作开始前的 props
-    this.memoizedProps = null; // 工作结束后的 props
-    this.memoizedState = null; // 重置
+    this.pendingProps = pendingProps;
+    this.memoizedProps = null;
+    this.memoizedState = null;
     this.updateQueue = null;
     this.alternate = null;
 
@@ -80,11 +89,10 @@ export class FiberNode {
     this.flags = NoFlags;
     this.subtreeFlags = NoFlags;
     this.deletions = null;
+    this.dependencies = null;
 
     this.lanes = NoLanes;
     this.childLanes = NoLanes;
-
-    this.dependencies = null;
   }
 }
 
@@ -126,16 +134,20 @@ export class FiberRootNode {
     this.callbackNode = null;
     this.callbackPriority = NoLane;
 
+    // 收集依赖的回调，卸载和更新时执行
     this.pendingPassiveEffects = {
       unmount: [],
       update: []
     };
 
+    // 缓存
     this.pingCache = null;
   }
 }
 
-// 创建 workInProgress：向外返回 current.alternate
+// 创建 workInProgress：currentProgress <--alternate--> workInProgress
+// 1、创建 wip 拿到 currentProgress 上的属性
+// 2、与 currentProgress 建立 alternate 关系
 export const createWorkInProgress = (
   current: FiberNode,
   pendingProps: Props
@@ -147,7 +159,7 @@ export const createWorkInProgress = (
     // mount 阶段
     wip = new FiberNode(current.tag, pendingProps, current.key);
     wip.stateNode = current.stateNode;
-
+    // 反向关联
     wip.alternate = current;
     current.alternate = wip;
   } else {
@@ -166,7 +178,6 @@ export const createWorkInProgress = (
   wip.memoizedProps = current.memoizedProps;
   wip.memoizedState = current.memoizedState;
   wip.ref = current.ref;
-
   wip.lanes = current.lanes;
   wip.childLanes = current.childLanes;
 
@@ -188,9 +199,10 @@ export function createFiberFromElement(element: ReactElementType): FiberNode {
   let fiberTag: WorkTag = FunctionComponent;
 
   if (typeof type === 'string') {
-    // <div/> type: 'div'
+    // type 为'string'：元素标签名称，例如：div、span、a
     fiberTag = HostComponent;
   } else if (typeof type === 'object') {
+    // type 为'object'：代表该组件的构造函数或函数组件本身
     switch (type.$$typeof) {
       case REACT_PROVIDER_TYPE:
         fiberTag = ContextProvider;
