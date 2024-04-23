@@ -116,8 +116,8 @@ export class FiberRootNode {
   finishedLane: Lane; // 本次更新消费的 lane
   pendingPassiveEffects: PendingPassiveEffects; // 收集依赖的回调，卸载和更新时执行
 
-  callbackNode: CallbackNode | null;
-  callbackPriority: Lane;
+  callbackNode: CallbackNode | null; // 存放异步执行的函数集合
+  callbackPriority: Lane; // 回调函数的优先级
 
   pingCache: WeakMap<Wakeable<any>, Set<Lane>> | null;
 
