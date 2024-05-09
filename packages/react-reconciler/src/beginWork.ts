@@ -234,7 +234,7 @@ function updateFunctionComponent(
   renderLane: Lane
 ) {
   prepareToReadContext(wip, renderLane);
-  // render
+  // render 函数组件
   const nextChildren = renderWithHooks(wip, Component, renderLane);
 
   const current = wip.alternate;

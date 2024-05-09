@@ -28,7 +28,7 @@ import { REACT_CONTEXT_TYPE } from 'shared/ReactSymbols';
 import { markWipReceivedUpdate } from './beginWork';
 import { readContext as readContextOrigin } from './fiberContext';
 
-// 当前正在 render 的 Fiber
+// 当前正在 render 的 函数组件 Fiber
 let currentlyRenderingFiber: FiberNode | null = null;
 // 当前正在处理的 Hook
 let workInProgressHook: Hook | null = null;
@@ -70,7 +70,7 @@ export function renderWithHooks(
   Component: FiberNode['type'],
   lane: Lane
 ) {
-  // 赋值操作
+  // 执行 FucntionComponent 的时候，重新赋值当前正在运行的Fiber
   currentlyRenderingFiber = wip;
   // 重置 hooks链表
   wip.memoizedState = null;

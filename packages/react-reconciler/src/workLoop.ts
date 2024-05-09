@@ -253,7 +253,7 @@ function performConcurrentWorkOnRoot(
   }
 }
 
-// 调度同步任务
+// 调度同步任务(同一批任务，此函数执行多次)
 function performSyncWorkOnRoot(root: FiberRootNode) {
   // 再次获取优先级：同一批同步任务，此处会执行多次；
   const nextLane = getNextLane(root);
