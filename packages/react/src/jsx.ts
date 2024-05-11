@@ -42,7 +42,7 @@ export function isValidElement(object: any) {
   );
 }
 
-// 通过 createElement 创建 React.element
+// babel 将 jsx 文件转为 createElement 方法的调用
 export const createElement = (
   type: ElementType,
   config: any,
@@ -83,9 +83,10 @@ export const createElement = (
   return ReactElement(type, key, ref, props);
 };
 
+// 标签 <>
 export const Fragment = REACT_FRAGMENT_TYPE;
 
-// 通过 jsx 创建 React.element
+// babel 将 jsx 文件转为 jsx 方法的调用
 export const jsx = (type: ElementType, config: any, maybeKey: any) => {
   let key: Key = null;
   let ref: Ref | null = null;

@@ -50,7 +50,7 @@ export class FiberNode {
   // 作为工作单元
   pendingProps: Props; // 当前处理过程中的组件props对象
   memoizedProps: Props | null; // 上一次渲染完成之后的props
-  memoizedState: any; // 上一次渲染的时候的state 以链表的形式保存 Hooks：useState--> useEffect--> useState....
+  memoizedState: any; // 上一次渲染的时候的 state 以链表的形式保存 Hooks：useState--> useEffect--> useState....
   updateQueue: unknown; // 该 Fiber 对应的组件产生的Update会存放在这个队列里面
   alternate: FiberNode | null; // fiber的版本池，即记录fiber更新过程，便于恢复
 

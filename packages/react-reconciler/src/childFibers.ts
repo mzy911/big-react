@@ -310,6 +310,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
   }
 
   /**
+   * 单、多节点只是针对 newChild 来说的
    * 此处为闭包函数，向外返回 reconcileChildFibers 函数
    * 1、returnFiber：父节点 FiberNode
    * 2、currentFiber：子节点 FiberNode

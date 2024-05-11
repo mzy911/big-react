@@ -28,10 +28,11 @@ import { REACT_CONTEXT_TYPE } from 'shared/ReactSymbols';
 import { markWipReceivedUpdate } from './beginWork';
 import { readContext as readContextOrigin } from './fiberContext';
 
-// 当前正在 render 的 函数组件 Fiber
+// FC 的 Fiber
 let currentlyRenderingFiber: FiberNode | null = null;
-// 当前正在处理的 Hook
+// FC 的 Hooks 链表 (mount、update 时都会产生)
 let workInProgressHook: Hook | null = null;
+// FC current 的 Hook (update 时产生)
 let currentHook: Hook | null = null;
 let renderLane: Lane = NoLane;
 
@@ -42,10 +43,10 @@ function readContext<Value>(context: ReactContext<Value>): Value {
   return readContextOrigin(consumer, context);
 }
 interface Hook {
-  memoizedState: any; // 保存 Hook 自身的 state 值
-  updateQueue: unknown;
+  baseState: any; // 计算前的 state 值
+  memoizedState: any; // 计算后的 state 值
+  updateQueue: unknown; // update 对象链表
   next: Hook | null; // 指向下一个hooks【
-  baseState: any;
   baseQueue: Update<any> | null;
 }
 
@@ -300,7 +301,7 @@ function updateWorkInProgressHook(): Hook {
   let nextCurrentHook: Hook | null;
 
   if (currentHook === null) {
-    // 这是这个FC update时的第一个hook
+    // FC update 时的第一个hook
     const current = (currentlyRenderingFiber as FiberNode).alternate;
     if (current !== null) {
       nextCurrentHook = current.memoizedState;
@@ -309,10 +310,11 @@ function updateWorkInProgressHook(): Hook {
       nextCurrentHook = null;
     }
   } else {
-    // 这个FC update时 后续的hook
+    // FC update时 后续的 hook
     nextCurrentHook = currentHook.next;
   }
 
+  // 判断语句中使用了Hooks：if(...)( useState() )
   if (nextCurrentHook === null) {
     // mount/update u1 u2 u3
     // update       u1 u2 u3 u4
@@ -321,6 +323,7 @@ function updateWorkInProgressHook(): Hook {
     );
   }
 
+  // FC 更新时的 Hook 赋值给 currentHook
   currentHook = nextCurrentHook as Hook;
   const newHook: Hook = {
     memoizedState: currentHook.memoizedState,
@@ -329,6 +332,7 @@ function updateWorkInProgressHook(): Hook {
     baseQueue: currentHook.baseQueue,
     baseState: currentHook.baseState
   };
+
   if (workInProgressHook === null) {
     // mount时 第一个hook
     if (currentlyRenderingFiber === null) {
@@ -363,7 +367,9 @@ function mountState<State>(
   hook.memoizedState = memoizedState;
   hook.baseState = memoizedState;
 
-  // @ts-ignore：
+  // @ts-ignore
+  // 1、mountState 时，创建一个 update 对象
+  // 创建 update 对象，在 disaptch 时执行
   const dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
   queue.dispatch = dispatch;
   queue.lastRenderedState = memoizedState;
@@ -409,13 +415,14 @@ function startTransition(setPending: Dispatch<boolean>, callback: () => void) {
   currentBatchConfig.transition = prevTransition;
 }
 
-// 创建 dispatch 方法
+// 创建 useState 的 dispatch 方法
 function dispatchSetState<State>(
   fiber: FiberNode,
   updateQueue: FCUpdateQueue<State>,
-  action: Action<State>
+  action: Action<State> // 调用 dispathState 时传入的 action
 ) {
   const lane = requestUpdateLane();
+  // 根据 action 创建 update
   const update = createUpdate(action, lane);
 
   // eager策略
@@ -432,6 +439,7 @@ function dispatchSetState<State>(
     update.eagerState = eagerState;
 
     if (Object.is(currentState, eagerState)) {
+      // 将 update 插入到队列中
       enqueueUpdate(updateQueue, update, fiber, NoLane);
       // 命中eagerState
       if (__DEV__) {
