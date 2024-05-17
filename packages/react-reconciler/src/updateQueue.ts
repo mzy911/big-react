@@ -34,6 +34,11 @@ export const enqueueUpdate = <State>(
 	updateQueue.shared.pending = update;
 };
 
+// 消费 update 对象
+// 1、返回值为 { memoizedState: baseState }
+// 2、根据 action 的类型确定 memoizedState 的值
+//    a、对于 useState 来说 action 为函数
+//    b、对于组件来说 action 为 Element
 export const processUpdateQueue = <State>(
 	baseState: State,
 	pendingUpdate: Update<State> | null

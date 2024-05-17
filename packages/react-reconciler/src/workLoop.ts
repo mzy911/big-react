@@ -2,9 +2,10 @@ import { beginWork } from './beginWork';
 import { commitMutationEffects } from './commitWork';
 import { completeWork } from './completeWork';
 import { createWorkInProgress, FiberNode, FiberRootNode } from './fiber';
-import { MutationMask, NoFlags } from './fiberFlags';
+import { Flags, MutationMask, NoFlags } from './fiberFlags';
 import { HostRoot } from './workTags';
 
+// 从 root.current 开始、一直向下
 let workInProgress: FiberNode | null = null;
 
 function prepareFreshStack(root: FiberRootNode) {
@@ -12,12 +13,12 @@ function prepareFreshStack(root: FiberRootNode) {
 }
 
 export function scheduleUpdateOnFiber(fiber: FiberNode) {
-	// TODO 调度功能
 	// fiberRootNode
 	const root = markUpdateFromFiberToRoot(fiber);
 	renderRoot(root);
 }
 
+// 从当前节点找到根节点
 function markUpdateFromFiberToRoot(fiber: FiberNode) {
 	let node = fiber;
 	let parent = node.return;
@@ -31,10 +32,14 @@ function markUpdateFromFiberToRoot(fiber: FiberNode) {
 	return null;
 }
 
+// render 的起始函数
 function renderRoot(root: FiberRootNode) {
 	// 初始化
 	prepareFreshStack(root);
 
+	// 进入 render 阶段
+	// 1、返回 childFiber
+	// 2、标记 Flags：Placement、Update
 	do {
 		try {
 			workLoop();
@@ -50,7 +55,9 @@ function renderRoot(root: FiberRootNode) {
 	const finishedWork = root.current.alternate;
 	root.finishedWork = finishedWork;
 
-	// wip fiberNode树 树中的flags
+	// 进入 commit 阶段
+	// 1、执行树中的 flags
+	// 2、收集 subtreeFlags
 	commitRoot(root);
 }
 
@@ -70,8 +77,7 @@ function commitRoot(root: FiberRootNode) {
 
 	// 判断是否存在3个子阶段需要执行的操作
 	// root flags root subtreeFlags
-	const subtreeHasEffect =
-		(finishedWork.subtreeFlags & MutationMask) !== NoFlags;
+	const subtreeHasEffect = (finishedWork.subtreeFlags & MutationMask) !== NoFlags;
 	const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;
 
 	if (subtreeHasEffect || rootHasEffect) {
@@ -87,13 +93,18 @@ function commitRoot(root: FiberRootNode) {
 	}
 }
 
+// 包含 递、归 两个阶段
+// 1、performUnitOfWork 向下递的过程 - 创建子 Fiber
+// 2、completeUnitOfWork：向上归的过程
 function workLoop() {
 	while (workInProgress !== null) {
 		performUnitOfWork(workInProgress);
 	}
 }
 
+// performUnitOfWork 向下递的过程 - 创建子 Fiber
 function performUnitOfWork(fiber: FiberNode) {
+	// 生成 childFiber
 	const next = beginWork(fiber);
 	fiber.memoizedProps = fiber.pendingProps;
 
@@ -104,6 +115,7 @@ function performUnitOfWork(fiber: FiberNode) {
 	}
 }
 
+// completeUnitOfWork：向上归的过程
 function completeUnitOfWork(fiber: FiberNode) {
 	let node: FiberNode | null = fiber;
 
@@ -115,6 +127,7 @@ function completeUnitOfWork(fiber: FiberNode) {
 			workInProgress = sibling;
 			return;
 		}
+
 		node = node.return;
 		workInProgress = node;
 	} while (node !== null);

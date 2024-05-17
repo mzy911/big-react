@@ -101,6 +101,7 @@ export const createWorkInProgress = (
 	return wip;
 };
 
+// 通过 Element 创建 fiber
 export function createFiberFromElement(element: ReactElementType): FiberNode {
 	const { type, key, props } = element;
 	let fiberTag: WorkTag = FunctionComponent;
@@ -116,7 +117,10 @@ export function createFiberFromElement(element: ReactElementType): FiberNode {
 	return fiber;
 }
 
+// 通过 Fragment 的 children 创建 fiber
 export function createFiberFromFragment(elements: any[], key: Key): FiberNode {
+
+	// Fragment 标签：elements 作为 fiber 的 pendingProps 属性返回
 	const fiber = new FiberNode(Fragment, elements, key);
 	return fiber;
 }
