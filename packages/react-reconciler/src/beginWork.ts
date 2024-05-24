@@ -34,7 +34,7 @@ export const beginWork = (wip: FiberNode) => {
 	return null;
 };
 
-// TODO：Fragment 的 children 为啥是 pendingProps
+// TODO：Fragment(因为时元素) 的 children 为啥是 pendingProps
 function updateFragment(wip: FiberNode) {
 	const nextChildren = wip.pendingProps;
 	reconcileChildren(wip, nextChildren);
