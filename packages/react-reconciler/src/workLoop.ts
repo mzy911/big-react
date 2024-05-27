@@ -13,7 +13,7 @@ function prepareFreshStack(root: FiberRootNode) {
 }
 
 export function scheduleUpdateOnFiber(fiber: FiberNode) {
-	// fiberRootNode
+	// 从当前 fiber 找到根节点
 	const root = markUpdateFromFiberToRoot(fiber);
 	renderRoot(root);
 }
@@ -32,7 +32,7 @@ function markUpdateFromFiberToRoot(fiber: FiberNode) {
 	return null;
 }
 
-// render 的起始函数
+// render 阶段起始函数
 function renderRoot(root: FiberRootNode) {
 	// 初始化
 	prepareFreshStack(root);
@@ -61,6 +61,7 @@ function renderRoot(root: FiberRootNode) {
 	commitRoot(root);
 }
 
+// commit 阶段起始函数
 function commitRoot(root: FiberRootNode) {
 	const finishedWork = root.finishedWork;
 
@@ -77,7 +78,8 @@ function commitRoot(root: FiberRootNode) {
 
 	// 判断是否存在3个子阶段需要执行的操作
 	// root flags root subtreeFlags
-	const subtreeHasEffect = (finishedWork.subtreeFlags & MutationMask) !== NoFlags;
+	const subtreeHasEffect =
+		(finishedWork.subtreeFlags & MutationMask) !== NoFlags;
 	const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;
 
 	if (subtreeHasEffect || rootHasEffect) {
@@ -95,14 +97,14 @@ function commitRoot(root: FiberRootNode) {
 
 // 包含 递、归 两个阶段
 // 1、performUnitOfWork 向下递的过程 - 创建子 Fiber
-// 2、completeUnitOfWork：向上归的过程
+// 2、completeUnitOfWork：向上归的过程 - 子节点插入到父节点中
 function workLoop() {
 	while (workInProgress !== null) {
 		performUnitOfWork(workInProgress);
 	}
 }
 
-// performUnitOfWork 向下递的过程 - 创建子 Fiber
+// 向下递的过程 - 创建子 Fiber
 function performUnitOfWork(fiber: FiberNode) {
 	// 生成 childFiber
 	const next = beginWork(fiber);
@@ -115,7 +117,7 @@ function performUnitOfWork(fiber: FiberNode) {
 	}
 }
 
-// completeUnitOfWork：向上归的过程
+// 向上归的过程 - 子节点插入到父节点中
 function completeUnitOfWork(fiber: FiberNode) {
 	let node: FiberNode | null = fiber;
 

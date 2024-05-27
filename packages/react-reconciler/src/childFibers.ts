@@ -12,7 +12,7 @@ import { Fragment, HostText } from './workTags';
 type ExistingChildren = Map<string | number, FiberNode>;
 
 function ChildReconciler(shouldTrackEffects: boolean) {
-	// 标记要删除的 childFiber：returnFiber.deletions 中收集
+	// 在 returnFiber.deletions 中收集要删除的 childToDelete
 	function deleteChild(returnFiber: FiberNode, childToDelete: FiberNode) {
 		if (!shouldTrackEffects) {
 			return;
@@ -48,8 +48,9 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		element: ReactElementType
 	) {
 		const key = element.key;
+
+		// update 更新阶段
 		while (currentFiber !== null) {
-			// update 阶段
 			// key相同
 			if (currentFiber.key === key) {
 				if (element.$$typeof === REACT_ELEMENT_TYPE) {
@@ -83,6 +84,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 			}
 		}
 
+		// 到此处为 mount 阶段
 		let fiber;
 		if (element.type === REACT_FRAGMENT_TYPE) {
 			fiber = createFiberFromFragment(element.props.children, key);
@@ -172,10 +174,18 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 				continue;
 			}
 
+			// 1、便利新的子节点、对比旧节点的 index
+			// 2、单 current.index 对比 上一次的 current.index（即 lastPlacedIndex）
+			// 3、标记 ‘d, e, f’
+			//    a, b, c, d, e, f, 'g', x, y, z 旧
+			//    0  1  2  3  4  5   6   7  8  9
+			//
+			//    a, b, c, 'g', d, e, f, x, y, z 新
+			//    0  1  2   3   4  5  6  7  8  9
 			const current = newFiber.alternate;
 			if (current !== null) {
 				const oldIndex = current.index;
-				if (oldIndex < lastPlacedIndex) {
+				if (lastPlacedIndex > oldIndex) {
 					// 移动
 					newFiber.flags |= Placement;
 					continue;
@@ -188,6 +198,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 				newFiber.flags |= Placement;
 			}
 		}
+
 		// 4. 将Map中剩下的标记为删除：returnFiber.
 		existingChildren.forEach((fiber) => {
 			deleteChild(returnFiber, fiber);
@@ -251,6 +262,13 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 			}
 
 			// TODO 数组类型
+			// 新的节点为 Array
+			// <ul>
+			//     <li/>
+			//     <li/>
+			//     子组件为数组
+			//     {[<li/>,<li/>]}
+			// </ul>
 			if (Array.isArray(element) && __DEV__) {
 				console.warn('还未实现数组类型的child');
 			}
@@ -294,8 +312,6 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		if (isUnkeyedTopLevelFragment) {
 			newChild = newChild.props.children;
 		}
-
-		debugger;
 
 		// 子节点为 Array、REACT_ELEMENT_TYPE
 		if (typeof newChild === 'object' && newChild !== null) {
@@ -368,5 +384,6 @@ function updateFragment(
 	return fiber;
 }
 
+// 打标记：新增、删除
 export const reconcileChildFibers = ChildReconciler(true);
 export const mountChildFibers = ChildReconciler(false);

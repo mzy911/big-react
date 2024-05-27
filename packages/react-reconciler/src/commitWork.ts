@@ -38,6 +38,7 @@ export const commitMutationEffects = (finishedWork: FiberNode) => {
 		} else {
 			// 向上遍历 DFS
 			up: while (nextEffect !== null) {
+				// 执行副作用
 				commitMutaitonEffectsOnFiber(nextEffect);
 				const sibling: FiberNode | null = nextEffect.sibling;
 
@@ -54,14 +55,19 @@ export const commitMutationEffects = (finishedWork: FiberNode) => {
 const commitMutaitonEffectsOnFiber = (finishedWork: FiberNode) => {
 	const flags = finishedWork.flags;
 
+	// 新增操作
 	if ((flags & Placement) !== NoFlags) {
 		commitPlacement(finishedWork);
 		finishedWork.flags &= ~Placement;
 	}
+
+	// 更新操作
 	if ((flags & Update) !== NoFlags) {
 		commitUpdate(finishedWork);
 		finishedWork.flags &= ~Update;
 	}
+
+	// 删除操作
 	if ((flags & ChildDeletion) !== NoFlags) {
 		const deletions = finishedWork.deletions;
 		if (deletions !== null) {
@@ -95,6 +101,7 @@ function recordHostChildrenToDelete(
 	// 2. 每找到一个 host节点，判断下这个节点是不是 1 找到那个节点的兄弟节点
 }
 
+// commit 阶段删除操作
 function commitDeletion(childToDelete: FiberNode) {
 	const rootChildrenToDelete: FiberNode[] = [];
 
@@ -161,6 +168,7 @@ function commitNestedComponent(
 	}
 }
 
+// 新增
 const commitPlacement = (finishedWork: FiberNode) => {
 	if (__DEV__) {
 		console.warn('执行Placement操作', finishedWork);
@@ -177,10 +185,12 @@ const commitPlacement = (finishedWork: FiberNode) => {
 	}
 };
 
+// 找到存在实际意义的 Sibling
 function getHostSibling(fiber: FiberNode) {
 	let node: FiberNode = fiber;
 
 	findSibling: while (true) {
+		// 无兄弟节点向上查找
 		while (node.sibling === null) {
 			const parent = node.return;
 
@@ -193,9 +203,12 @@ function getHostSibling(fiber: FiberNode) {
 			}
 			node = parent;
 		}
+
+		// 有兄弟节点
 		node.sibling.return = node.return;
 		node = node.sibling;
 
+		// 为函数组件，找到第一个 DOM 节点
 		while (node.tag !== HostText && node.tag !== HostComponent) {
 			// 向下遍历
 			if ((node.flags & Placement) !== NoFlags) {
@@ -209,12 +222,14 @@ function getHostSibling(fiber: FiberNode) {
 			}
 		}
 
+		// 返回兄弟节点
 		if ((node.flags & Placement) === NoFlags) {
 			return node.stateNode;
 		}
 	}
 }
 
+// 找到存在实际意义的 Parent
 function getHostParent(fiber: FiberNode): Container | null {
 	let parent = fiber.return;
 
@@ -235,12 +250,13 @@ function getHostParent(fiber: FiberNode): Container | null {
 	return null;
 }
 
+// parent 中插入 child
 function insertOrAppendPlacementNodeIntoContainer(
 	finishedWork: FiberNode,
 	hostParent: Container,
 	before?: Instance
 ) {
-	// fiber host
+	// fiber host：parent 中插入 child
 	if (finishedWork.tag === HostComponent || finishedWork.tag === HostText) {
 		if (before) {
 			insertChildToContainer(finishedWork.stateNode, hostParent, before);
@@ -250,6 +266,7 @@ function insertOrAppendPlacementNodeIntoContainer(
 
 		return;
 	}
+
 	const child = finishedWork.child;
 	if (child !== null) {
 		insertOrAppendPlacementNodeIntoContainer(child, hostParent);

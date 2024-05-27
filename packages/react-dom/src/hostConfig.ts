@@ -15,6 +15,7 @@ export const createInstance = (type: string, props: Props): Instance => {
 	return element as DOMElement;
 };
 
+// 向 parent 中插入 child
 export const appendInitialChild = (
 	parent: Instance | Container,
 	child: Instance
@@ -22,12 +23,14 @@ export const appendInitialChild = (
 	parent.appendChild(child);
 };
 
+// 创建文本节点
 export const createTextInstance = (content: string) => {
 	return document.createTextNode(content);
 };
 
 export const appendChildToContainer = appendInitialChild;
 
+// commit 阶段更新文本节点
 export function commitUpdate(fiber: FiberNode) {
 	switch (fiber.tag) {
 		case HostText:
@@ -45,6 +48,7 @@ export function commitTextUpdate(textInstance: TextInstance, content: string) {
 	textInstance.textContent = content;
 }
 
+// 移除子节点
 export function removeChild(
 	child: Instance | TextInstance,
 	container: Container
@@ -52,6 +56,7 @@ export function removeChild(
 	container.removeChild(child);
 }
 
+// 向 Container 中的 before 前插入 child
 export function insertChildToContainer(
 	child: Instance,
 	container: Container,

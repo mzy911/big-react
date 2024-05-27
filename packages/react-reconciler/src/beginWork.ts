@@ -11,7 +11,7 @@ import {
 	HostText
 } from './workTags';
 
-// 递归中的递阶段
+// 递归中的递阶段 - 最终返回 wip.child
 export const beginWork = (wip: FiberNode) => {
 	// 比较，返回子fiberNode
 	switch (wip.tag) {
@@ -34,21 +34,22 @@ export const beginWork = (wip: FiberNode) => {
 	return null;
 };
 
-// TODO：Fragment(因为时元素) 的 children 为啥是 pendingProps
+// TODO：Fragment 的 children 是 pendingProps
 function updateFragment(wip: FiberNode) {
 	const nextChildren = wip.pendingProps;
 	reconcileChildren(wip, nextChildren);
 	return wip.child;
 }
 
-// FunctionComponent 的 children 是函数组件方法调用的结果
+// TODO：FunctionComponent 的 children 是函数组件方法调用的结果
 function updateFunctionComponent(wip: FiberNode) {
+	// children = Component(wip.pendingProps);
 	const nextChildren = renderWithHooks(wip);
 	reconcileChildren(wip, nextChildren);
 	return wip.child;
 }
 
-// TODO：HostRoot 的 children 为啥是 memoizedState
+// TODO：HostRoot 的 children 是 memoizedState
 // 1、baseState 为 null
 // 2、此时 update 中 action 为 Element
 function updateHostRoot(wip: FiberNode) {
@@ -56,6 +57,7 @@ function updateHostRoot(wip: FiberNode) {
 	const updateQueue = wip.updateQueue as UpdateQueue<Element>;
 	const pending = updateQueue.shared.pending;
 	updateQueue.shared.pending = null;
+	// 消费 updata 返回 { memoizedState }
 	const { memoizedState } = processUpdateQueue(baseState, pending);
 	wip.memoizedState = memoizedState;
 
@@ -64,7 +66,7 @@ function updateHostRoot(wip: FiberNode) {
 	return wip.child;
 }
 
-// TODO：HostComponent 的 children 为啥是 pendingProps
+// TODO：HostComponent 的 children 是 pendingProps
 function updateHostComponent(wip: FiberNode) {
 	const nextProps = wip.pendingProps;
 	const nextChildren = nextProps.children;
@@ -72,9 +74,9 @@ function updateHostComponent(wip: FiberNode) {
 	return wip.child;
 }
 
-// 创建子 Fiber 建立父子关系
-// 1、wip.child = childFiber;
-// 2、fiber.return = returnFiber;
+// 协调子 child
+// 1、创建子 Fiber 与 wip 建立父子关系
+// 2、标记 新增、删除 flag
 function reconcileChildren(wip: FiberNode, children?: ReactElementType) {
 	const current = wip.alternate;
 

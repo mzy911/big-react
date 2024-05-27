@@ -24,8 +24,12 @@ interface Hook {
 	next: Hook | null;
 }
 
+// Fiber 类型为函数组件时
+// 1、重置状态
+// 2、挂载 update
+// 3、返回 children
 export function renderWithHooks(wip: FiberNode) {
-	// 赋值操作
+	// 赋值操作：当前正在渲染的 Fiber
 	currentlyRenderingFiber = wip;
 	// 重置 hooks链表
 	wip.memoizedState = null;

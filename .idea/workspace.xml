@@ -7,6 +7,10 @@
     <list default="true" id="84f49246-e140-4f80-951f-df336e270314" name="Changes" comment="feat: 学习">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/beginWork.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/beginWork.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/childFibers.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/childFibers.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/completeWork.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/completeWork.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/fiberHooks.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/fiberHooks.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/updateQueue.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/updateQueue.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,7 +67,10 @@
       <workItem from="1715942165206" duration="889000" />
       <workItem from="1716341270164" duration="589000" />
       <workItem from="1716427712542" duration="133000" />
-      <workItem from="1716534320449" duration="1548000" />
+      <workItem from="1716534320449" duration="1967000" />
+      <workItem from="1716536319420" duration="4002000" />
+      <workItem from="1716772914656" duration="628000" />
+      <workItem from="1716786958103" duration="5907000" />
     </task>
     <task id="LOCAL-00001" summary="feat: 学习">
       <option name="closed" value="true" />
@@ -97,7 +104,15 @@
       <option name="project" value="LOCAL" />
       <updated>1715942467611</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="feat: 学习">
+      <option name="closed" value="true" />
+      <created>1716535906066</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1716535906066</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
