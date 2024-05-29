@@ -9,58 +9,58 @@ export type TextInstance = Text;
 
 // export const createInstance = (type: string, props: any): Instance => {
 export const createInstance = (type: string, props: Props): Instance => {
-	// TODO 处理props
-	const element = document.createElement(type) as unknown;
-	updateFiberProps(element as DOMElement, props);
-	return element as DOMElement;
+  // TODO 处理props
+  const element = document.createElement(type) as unknown;
+  updateFiberProps(element as DOMElement, props);
+  return element as DOMElement;
 };
 
 // 向 parent 中插入 child
 export const appendInitialChild = (
-	parent: Instance | Container,
-	child: Instance
+  parent: Instance | Container,
+  child: Instance
 ) => {
-	parent.appendChild(child);
+  parent.appendChild(child);
 };
 
 // 创建文本节点
 export const createTextInstance = (content: string) => {
-	return document.createTextNode(content);
+  return document.createTextNode(content);
 };
 
 export const appendChildToContainer = appendInitialChild;
 
 // commit 阶段更新文本节点
 export function commitUpdate(fiber: FiberNode) {
-	switch (fiber.tag) {
-		case HostText:
-			const text = fiber.memoizedProps?.content;
-			return commitTextUpdate(fiber.stateNode, text);
-		default:
-			if (__DEV__) {
-				console.warn('未实现的Update类型', fiber);
-			}
-			break;
-	}
+  switch (fiber.tag) {
+    case HostText:
+      const text = fiber.memoizedProps?.content;
+      return commitTextUpdate(fiber.stateNode, text);
+    default:
+      if (__DEV__) {
+        console.warn('未实现的Update类型', fiber);
+      }
+      break;
+  }
 }
 
 export function commitTextUpdate(textInstance: TextInstance, content: string) {
-	textInstance.textContent = content;
+  textInstance.textContent = content;
 }
 
 // 移除子节点
 export function removeChild(
-	child: Instance | TextInstance,
-	container: Container
+  child: Instance | TextInstance,
+  container: Container
 ) {
-	container.removeChild(child);
+  container.removeChild(child);
 }
 
 // 向 Container 中的 before 前插入 child
 export function insertChildToContainer(
-	child: Instance,
-	container: Container,
-	before: Instance
+  child: Instance,
+  container: Container,
+  before: Instance
 ) {
-	container.insertBefore(child, before);
+  container.insertBefore(child, before);
 }
