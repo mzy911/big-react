@@ -19,8 +19,9 @@ function markUpdate(fiber: FiberNode) {
   fiber.flags |= Update;
 }
 
-// 1、创建 DOM 、更新 props
-// 2、向上收集 subtreeFlags
+// 1、mount 阶段：创建 DOM 、挂载属性 wip.stateNode = instance
+//   update 阶段： 更新 props
+// 2、向上收集 Flags
 export const completeWork = (wip: FiberNode) => {
   // 递归中的归
   const newProps = wip.pendingProps;

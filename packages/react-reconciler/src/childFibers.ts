@@ -26,7 +26,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
     }
   }
 
-  // 删除兄弟节点
+  // 删除兄弟节点，最终调用 ChildReconciler
   function deleteRemainingChildren(
     returnFiber: FiberNode,
     currentFirstChild: FiberNode | null
@@ -84,7 +84,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
       }
     }
 
-    // 到此处为 mount 阶段
+    // mount 阶段：创建 Fragment、Element 节点的 Fiber
     let fiber;
     if (element.type === REACT_FRAGMENT_TYPE) {
       fiber = createFiberFromFragment(element.props.children, key);

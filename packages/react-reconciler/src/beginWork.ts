@@ -35,6 +35,9 @@ export const beginWork = (wip: FiberNode) => {
 };
 
 // TODO：Fragment 的 children 是 pendingProps
+// 1、createFiberFromFragment(element.props.children, key);
+// 2、new FiberNode(Fragment, elements, key);
+// 3、constructor(tag: WorkTag, pendingProps: Props, key: Key)
 function updateFragment(wip: FiberNode) {
   const nextChildren = wip.pendingProps;
   reconcileChildren(wip, nextChildren);
@@ -42,8 +45,9 @@ function updateFragment(wip: FiberNode) {
 }
 
 // TODO：FunctionComponent 的 children 是函数组件方法调用的结果
+// 1、renderWithHooks(wip);
+// 2、const children = Component(props);
 function updateFunctionComponent(wip: FiberNode) {
-  // children = Component(wip.pendingProps);
   const nextChildren = renderWithHooks(wip);
   reconcileChildren(wip, nextChildren);
   return wip.child;
@@ -66,7 +70,10 @@ function updateHostRoot(wip: FiberNode) {
   return wip.child;
 }
 
-// TODO：HostComponent 的 children 是 pendingProps
+// TODO：HostComponent 的 children 是 pendingProps.children
+// 1、createFiberFromElement(element);
+// 2、const { type, key, props } = element;
+// 3、new FiberNode(fiberTag, props, key);
 function updateHostComponent(wip: FiberNode) {
   const nextProps = wip.pendingProps;
   const nextChildren = nextProps.children;
