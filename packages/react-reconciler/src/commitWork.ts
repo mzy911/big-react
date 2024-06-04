@@ -23,6 +23,7 @@ import {
 
 let nextEffect: FiberNode | null = null;
 
+// commit 阶段起始函数
 export const commitMutationEffects = (finishedWork: FiberNode) => {
 	nextEffect = finishedWork;
 
