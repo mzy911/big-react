@@ -99,8 +99,9 @@ function mountEffect(create: EffectCallback | void, deps: EffectDeps | void) {
 	(currentlyRenderingFiber as FiberNode).flags |= PassiveEffect;
 
 	// 对于 Effect 的 hook 来说， memoizedState 保存的是 Effect 链表
-	// 1、hook.next 指向下一个 hook
-	// 2、efftHook.memoizedState.next 指向下一个 efftHook.memoizedState
+	// 1、创建 Effect 对象
+	// 2、返回 Effect 链表，挂载到 hook.memoizedState 上
+	// 3、在 fiber.updateQueue 上的 lastEffect 保存 Effect 环状链表
 	hook.memoizedState = pushEffect(
 		Passive | HookHasEffect,
 		create,
@@ -111,6 +112,7 @@ function mountEffect(create: EffectCallback | void, deps: EffectDeps | void) {
 
 // useEffect()
 function updateEffect(create: EffectCallback | void, deps: EffectDeps | void) {
+	// 根据 fiber.memoizedState 创建新的 hooks 链表
 	const hook = updateWorkInProgresHook();
 	const nextDeps = deps === undefined ? null : deps;
 	let destroy: EffectCallback | void;
@@ -127,6 +129,7 @@ function updateEffect(create: EffectCallback | void, deps: EffectDeps | void) {
 				return;
 			}
 		}
+
 		// 浅比较 不相等
 		(currentlyRenderingFiber as FiberNode).flags |= PassiveEffect;
 		hook.memoizedState = pushEffect(
@@ -198,7 +201,7 @@ function createFCUpdateQueue<State>() {
 }
 
 function updateState<State>(): [State, Dispatch<State>] {
-	// 找到当前useState对应的hook数据
+	// 根据 fiber.memoizedState 创建新的 hooks 链表
 	const hook = updateWorkInProgresHook();
 
 	// 计算新state的逻辑
@@ -244,6 +247,7 @@ function updateWorkInProgresHook(): Hook {
 	}
 
 	currentHook = nextCurrentHook as Hook;
+
 	const newHook: Hook = {
 		memoizedState: currentHook.memoizedState,
 		updateQueue: currentHook.updateQueue,
@@ -279,7 +283,7 @@ function mountState<State>(
 		memoizedState = initialState;
 	}
 
-	// 创建 UpdateQueue
+	// 创建 UpdateQueue 链表
 	const queue = createUpdateQueue<State>();
 	hook.updateQueue = queue;
 	hook.memoizedState = memoizedState;

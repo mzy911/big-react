@@ -24,7 +24,7 @@ export class FiberNode {
 	index: number;
 
 	memoizedProps: Props | null;
-	memoizedState: any;
+	memoizedState: any; // 对于 FC 组件保存 hooks 链表
 	alternate: FiberNode | null;
 	flags: Flags;
 	subtreeFlags: Flags;

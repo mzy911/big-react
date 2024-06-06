@@ -29,7 +29,6 @@ import {
 	unstable_NormalPriority as NormalPriority
 } from 'scheduler';
 import { HookHasEffect, Passive } from './hookEffectTags';
-import { render } from 'react-dom';
 
 let workInProgress: FiberNode | null = null;
 // 本次调度过程的 lane
