@@ -29,10 +29,12 @@ import {
 	unstable_NormalPriority as NormalPriority
 } from 'scheduler';
 import { HookHasEffect, Passive } from './hookEffectTags';
+import { render } from 'react-dom';
 
 let workInProgress: FiberNode | null = null;
+// 本次调度过程的 lane
 let wipRootRenderLane: Lane = NoLane;
-let rootDoesHasPassiveEffects: Boolean = false;
+let rootDoesHasPassiveEffects = false;
 
 function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 	workInProgress = createWorkInProgress(root.current, {});
@@ -42,16 +44,21 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 	// fiberRootNode
 	const root = markUpdateFromFiberToRoot(fiber);
+
+	// 每次调度先往 FiberRootNode.pendingLanes 上先合并 lane
 	markRootUpdated(root, lane);
+
 	ensureRootIsScheduled(root);
 }
 
 // schedule阶段入口
 function ensureRootIsScheduled(root: FiberRootNode) {
+	// 获取优先级最高的 lane 开始调度
 	const updateLane = getHighestPriorityLane(root.pendingLanes);
 	if (updateLane === NoLane) {
 		return;
 	}
+
 	if (updateLane === SyncLane) {
 		// 同步优先级 用微任务调度
 		if (__DEV__) {
@@ -65,6 +72,7 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 	}
 }
 
+// FiberRootNode.pendingLanes 上挂载 lanes
 function markRootUpdated(root: FiberRootNode, lane: Lane) {
 	root.pendingLanes = mergeLanes(root.pendingLanes, lane);
 }
@@ -85,6 +93,7 @@ function markUpdateFromFiberToRoot(fiber: FiberNode) {
 function performSyncWorkOnRoot(root: FiberRootNode, lane: Lane) {
 	const nextLane = getHighestPriorityLane(root.pendingLanes);
 
+	// 同一批任务会执行多次
 	if (nextLane !== SyncLane) {
 		// 其他比SyncLane低的优先级
 		// NoLane
@@ -139,12 +148,15 @@ function commitRoot(root: FiberRootNode) {
 	root.finishedWork = null;
 	root.finishedLane = NoLane;
 
+	// commit 之前需要移除 lane
 	markRootFinished(root, lane);
 
+	// schedule 的调度在 commit 阶段
 	if (
 		(finishedWork.flags & PassiveMask) !== NoFlags ||
 		(finishedWork.subtreeFlags & PassiveMask) !== NoFlags
 	) {
+		// 防止多次 commit 时，多次调度
 		if (!rootDoesHasPassiveEffects) {
 			rootDoesHasPassiveEffects = true;
 			// 调度副作用

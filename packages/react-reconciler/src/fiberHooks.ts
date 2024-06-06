@@ -23,19 +23,21 @@ let renderLane: Lane = NoLane;
 
 const { currentDispatcher } = internals;
 interface Hook {
-	memoizedState: any;
-	updateQueue: unknown;
-	next: Hook | null;
+	memoizedState: any; // 保存当前 hook 计算的值
+	updateQueue: unknown; // mountState 时
+	next: Hook | null; // 连接下一个 hook
 }
 
+// 有三种形式：useEffect、useLayoutEffect、useInsertionEffect
 export interface Effect {
 	tag: Flags;
-	create: EffectCallback | void;
+	create: EffectCallback | void; // Effect 的回调函数
 	destroy: EffectCallback | void;
 	deps: EffectDeps;
-	next: Effect | null;
+	next: Effect | null; // 连接下一个 Effect
 }
 
+// 对于函数组件来说 lastEffect 用来指向 Effect 的副作用函数
 export interface FCUpdateQueue<State> extends UpdateQueue<State> {
 	lastEffect: Effect | null;
 }
@@ -46,9 +48,9 @@ type EffectDeps = any[] | null;
 export function renderWithHooks(wip: FiberNode, lane: Lane) {
 	// 赋值操作
 	currentlyRenderingFiber = wip;
-	// 重置 hooks链表
+	// 重置 hooks 链表
 	wip.memoizedState = null;
-	// 重置 effect链表
+	// 重置 update 链表
 	wip.updateQueue = null;
 	renderLane = lane;
 
@@ -85,11 +87,20 @@ const HooksDispatcherOnUpdate: Dispatcher = {
 	useEffect: updateEffect
 };
 
+// mount 时 useEffect()
 function mountEffect(create: EffectCallback | void, deps: EffectDeps | void) {
+	// 1、每次调用 useEffect 时创建一个 hook
+	// 2、多次调用并形成链表 hooks 链表
+	// 3、挂载到 currentlyRenderingFiber.memoizedState 上（即：fiber.memoizedState）
 	const hook = mountWorkInProgresHook();
 	const nextDeps = deps === undefined ? null : deps;
+
+	// mount 时需标记 PassiveEffect
 	(currentlyRenderingFiber as FiberNode).flags |= PassiveEffect;
 
+	// 对于 Effect 的 hook 来说， memoizedState 保存的是 Effect 链表
+	// 1、hook.next 指向下一个 hook
+	// 2、efftHook.memoizedState.next 指向下一个 efftHook.memoizedState
 	hook.memoizedState = pushEffect(
 		Passive | HookHasEffect,
 		create,
@@ -98,6 +109,7 @@ function mountEffect(create: EffectCallback | void, deps: EffectDeps | void) {
 	);
 }
 
+// useEffect()
 function updateEffect(create: EffectCallback | void, deps: EffectDeps | void) {
 	const hook = updateWorkInProgresHook();
 	const nextDeps = deps === undefined ? null : deps;
@@ -139,12 +151,14 @@ function areHookInputsEqual(nextDeps: EffectDeps, prevDeps: EffectDeps) {
 	return true;
 }
 
+// 多个 Effect 也会形成链表
 function pushEffect(
 	hookFlags: Flags,
 	create: EffectCallback | void,
 	destroy: EffectCallback | void,
 	deps: EffectDeps
 ): Effect {
+	// 创建 Effect 对象
 	const effect: Effect = {
 		tag: hookFlags,
 		create,
@@ -153,6 +167,8 @@ function pushEffect(
 		next: null
 	};
 	const fiber = currentlyRenderingFiber as FiberNode;
+
+	// 记录最后一个 Effect 副作用函数
 	const updateQueue = fiber.updateQueue as FCUpdateQueue<any>;
 	if (updateQueue === null) {
 		const updateQueue = createFCUpdateQueue();
@@ -252,7 +268,9 @@ function updateWorkInProgresHook(): Hook {
 function mountState<State>(
 	initialState: (() => State) | State
 ): [State, Dispatch<State>] {
-	// 找到当前useState对应的hook数据
+	// 1、每次调用 useEffect 时创建一个 hook
+	// 2、多次调用并形成链表 hooks 链表
+	// 3、挂载到 currentlyRenderingFiber.memoizedState 上（即：fiber.memoizedState）
 	const hook = mountWorkInProgresHook();
 	let memoizedState;
 	if (initialState instanceof Function) {
@@ -260,6 +278,8 @@ function mountState<State>(
 	} else {
 		memoizedState = initialState;
 	}
+
+	// 创建 UpdateQueue
 	const queue = createUpdateQueue<State>();
 	hook.updateQueue = queue;
 	hook.memoizedState = memoizedState;

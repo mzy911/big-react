@@ -15,6 +15,7 @@ export interface UpdateQueue<State> {
 	dispatch: Dispatch<State> | null;
 }
 
+// Update 上新增 lane、next 属性
 export const createUpdate = <State>(
 	action: Action<State>,
 	lane: Lane
@@ -35,6 +36,7 @@ export const createUpdateQueue = <State>() => {
 	} as UpdateQueue<State>;
 };
 
+// 多个 Updaet 以 next 进行连接
 export const enqueueUpdate = <State>(
 	updateQueue: UpdateQueue<State>,
 	update: Update<State>
@@ -61,6 +63,7 @@ export const processUpdateQueue = <State>(
 		memoizedState: baseState
 	};
 
+	// 以链表的形式依次执行多个 Update
 	if (pendingUpdate !== null) {
 		// 第一个update
 		const first = pendingUpdate.next;

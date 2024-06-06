@@ -71,9 +71,9 @@ export class FiberRootNode {
 	container: Container;
 	current: FiberNode;
 	finishedWork: FiberNode | null;
-	pendingLanes: Lanes;
-	finishedLane: Lane;
-	pendingPassiveEffects: PendingPassiveEffects;
+	pendingLanes: Lanes; // lane 的集合
+	finishedLane: Lane; // 本次更新消费的 lane
+	pendingPassiveEffects: PendingPassiveEffects; // 收集 FC 组件 update、unmount 的 Effect 回调
 	constructor(container: Container, hostRootFiber: FiberNode) {
 		this.container = container;
 		this.current = hostRootFiber;
