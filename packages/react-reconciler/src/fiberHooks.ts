@@ -194,6 +194,7 @@ function pushEffect(
 	return effect;
 }
 
+// 对于 FC 函数组件来说 updateQueue 上新增 lastEffect 属性
 function createFCUpdateQueue<State>() {
 	const updateQueue = createUpdateQueue<State>() as FCUpdateQueue<State>;
 	updateQueue.lastEffect = null;

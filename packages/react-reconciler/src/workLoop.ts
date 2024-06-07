@@ -202,6 +202,8 @@ function flushPassiveEffects(pendingPassiveEffects: PendingPassiveEffects) {
 		commitHookEffectListCreate(Passive | HookHasEffect, effect);
 	});
 	pendingPassiveEffects.update = [];
+
+	// 在回调函数中有新的更新
 	flushSyncCallbacks();
 }
 

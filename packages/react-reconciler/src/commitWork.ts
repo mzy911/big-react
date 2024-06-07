@@ -77,6 +77,7 @@ const commitMutaitonEffectsOnFiber = (
 		const deletions = finishedWork.deletions;
 		if (deletions !== null) {
 			deletions.forEach((childToDelete) => {
+				// 递归删除子元素
 				commitDeletion(childToDelete, root);
 			});
 		}
@@ -89,6 +90,7 @@ const commitMutaitonEffectsOnFiber = (
 	}
 };
 
+// 收集 PassiveEffect
 function commitPassiveEffect(
 	fiber: FiberNode,
 	root: FiberRootNode,
@@ -110,6 +112,7 @@ function commitPassiveEffect(
 	}
 }
 
+// 执行 hookEffectList
 function commitHookEffectList(
 	flags: Flags,
 	lastEffect: Effect,
@@ -125,6 +128,7 @@ function commitHookEffectList(
 	} while (effect !== lastEffect.next);
 }
 
+// unMount 时执行 HookEffect
 export function commitHookEffectListUnmount(flags: Flags, lastEffect: Effect) {
 	commitHookEffectList(flags, lastEffect, (effect) => {
 		const destroy = effect.destroy;
@@ -135,6 +139,7 @@ export function commitHookEffectListUnmount(flags: Flags, lastEffect: Effect) {
 	});
 }
 
+// destory 时执行 HookEffect
 export function commitHookEffectListDestroy(flags: Flags, lastEffect: Effect) {
 	commitHookEffectList(flags, lastEffect, (effect) => {
 		const destroy = effect.destroy;
@@ -144,6 +149,7 @@ export function commitHookEffectListDestroy(flags: Flags, lastEffect: Effect) {
 	});
 }
 
+// create 时执行 HookEffect
 export function commitHookEffectListCreate(flags: Flags, lastEffect: Effect) {
 	commitHookEffectList(flags, lastEffect, (effect) => {
 		const create = effect.create;
@@ -175,6 +181,7 @@ function recordHostChildrenToDelete(
 	// 2. 每找到一个 host节点，判断下这个节点是不是 1 找到那个节点的兄弟节点
 }
 
+// 删除子元素
 function commitDeletion(childToDelete: FiberNode, root: FiberRootNode) {
 	const rootChildrenToDelete: FiberNode[] = [];
 
@@ -190,6 +197,7 @@ function commitDeletion(childToDelete: FiberNode, root: FiberRootNode) {
 				return;
 			case FunctionComponent:
 				// TODO 解绑ref
+				// 删除 FC 的时候收集 PassiveEffect
 				commitPassiveEffect(unmountFiber, root, 'unmount');
 				return;
 			default:
@@ -212,6 +220,7 @@ function commitDeletion(childToDelete: FiberNode, root: FiberRootNode) {
 	childToDelete.child = null;
 }
 
+// 递归子树
 function commitNestedComponent(
 	root: FiberNode,
 	onCommitUnmount: (fiber: FiberNode) => void
