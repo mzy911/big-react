@@ -201,6 +201,64 @@ function createFCUpdateQueue<State>() {
 	return updateQueue;
 }
 
+function mountState<State>(
+	initialState: (() => State) | State
+): [State, Dispatch<State>] {
+	// 1、每次调用 useEffect 时创建一个 hook
+	// 2、多次调用并形成链表 hooks 链表
+	// 3、挂载到 currentlyRenderingFiber.memoizedState 上（即：fiber.memoizedState）
+	const hook = mountWorkInProgresHook();
+	let memoizedState;
+	if (initialState instanceof Function) {
+		memoizedState = initialState();
+	} else {
+		memoizedState = initialState;
+	}
+
+	// 创建 UpdateQueue 链表
+	const queue = createUpdateQueue<State>();
+	hook.updateQueue = queue;
+	hook.memoizedState = memoizedState;
+
+	// @ts-ignore
+	const dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
+	queue.dispatch = dispatch;
+	return [memoizedState, dispatch];
+}
+
+function dispatchSetState<State>(
+	fiber: FiberNode,
+	updateQueue: UpdateQueue<State>,
+	action: Action<State>
+) {
+	const lane = requestUpdateLane();
+	const update = createUpdate(action, lane);
+	enqueueUpdate(updateQueue, update);
+	scheduleUpdateOnFiber(fiber, lane);
+}
+
+function mountWorkInProgresHook(): Hook {
+	const hook: Hook = {
+		memoizedState: null,
+		updateQueue: null,
+		next: null
+	};
+	if (workInProgressHook === null) {
+		// mount时 第一个hook
+		if (currentlyRenderingFiber === null) {
+			throw new Error('请在函数组件内调用hook');
+		} else {
+			workInProgressHook = hook;
+			currentlyRenderingFiber.memoizedState = workInProgressHook;
+		}
+	} else {
+		// mount时 后续的hook
+		workInProgressHook.next = hook;
+		workInProgressHook = hook;
+	}
+	return workInProgressHook;
+}
+
 function updateState<State>(): [State, Dispatch<State>] {
 	// 根据 fiber.memoizedState 创建新的 hooks 链表
 	const hook = updateWorkInProgresHook();
@@ -266,64 +324,6 @@ function updateWorkInProgresHook(): Hook {
 		// mount时 后续的hook
 		workInProgressHook.next = newHook;
 		workInProgressHook = newHook;
-	}
-	return workInProgressHook;
-}
-
-function mountState<State>(
-	initialState: (() => State) | State
-): [State, Dispatch<State>] {
-	// 1、每次调用 useEffect 时创建一个 hook
-	// 2、多次调用并形成链表 hooks 链表
-	// 3、挂载到 currentlyRenderingFiber.memoizedState 上（即：fiber.memoizedState）
-	const hook = mountWorkInProgresHook();
-	let memoizedState;
-	if (initialState instanceof Function) {
-		memoizedState = initialState();
-	} else {
-		memoizedState = initialState;
-	}
-
-	// 创建 UpdateQueue 链表
-	const queue = createUpdateQueue<State>();
-	hook.updateQueue = queue;
-	hook.memoizedState = memoizedState;
-
-	// @ts-ignore
-	const dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
-	queue.dispatch = dispatch;
-	return [memoizedState, dispatch];
-}
-
-function dispatchSetState<State>(
-	fiber: FiberNode,
-	updateQueue: UpdateQueue<State>,
-	action: Action<State>
-) {
-	const lane = requestUpdateLane();
-	const update = createUpdate(action, lane);
-	enqueueUpdate(updateQueue, update);
-	scheduleUpdateOnFiber(fiber, lane);
-}
-
-function mountWorkInProgresHook(): Hook {
-	const hook: Hook = {
-		memoizedState: null,
-		updateQueue: null,
-		next: null
-	};
-	if (workInProgressHook === null) {
-		// mount时 第一个hook
-		if (currentlyRenderingFiber === null) {
-			throw new Error('请在函数组件内调用hook');
-		} else {
-			workInProgressHook = hook;
-			currentlyRenderingFiber.memoizedState = workInProgressHook;
-		}
-	} else {
-		// mount时 后续的hook
-		workInProgressHook.next = hook;
-		workInProgressHook = hook;
 	}
 	return workInProgressHook;
 }
