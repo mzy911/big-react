@@ -86,6 +86,8 @@ function dispatchEvent(container: Container, eventType: string, e: Event) {
 function triggerEventFlow(paths: EventCallback[], se: SyntheticEvent) {
 	for (let i = 0; i < paths.length; i++) {
 		const callback = paths[i];
+		// 根据不同的事件类型，绑定不同的事件优先级
+		// 同时将全局的优先级赋值为当前优先级
 		unstable_runWithPriority(eventTypeToSchdulerPriority(se.type), () => {
 			callback.call(null, se);
 		});

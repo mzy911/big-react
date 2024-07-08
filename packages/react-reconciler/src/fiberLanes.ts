@@ -24,6 +24,8 @@ export function mergeLanes(laneA: Lane, laneB: Lane): Lanes {
 export function requestUpdateLane() {
 	// 从上下文环境中获取Scheduler优先级
 	const currentSchedulerPriority = unstable_getCurrentPriorityLevel();
+
+	// 将 schedule(调度器) 的优先级转为 react(lane) 的优先级
 	const lane = schedulerPriorityToLane(currentSchedulerPriority);
 	return lane;
 }
@@ -40,6 +42,7 @@ export function markRootFinished(root: FiberRootNode, lane: Lane) {
 	root.pendingLanes &= ~lane;
 }
 
+// 将 react(lane) 的优先级转为 schedule(调度器) 的优先级
 export function lanesToSchedulerPriority(lanes: Lanes) {
 	const lane = getHighestPriorityLane(lanes);
 
@@ -55,6 +58,7 @@ export function lanesToSchedulerPriority(lanes: Lanes) {
 	return unstable_IdlePriority;
 }
 
+// 将 schedule(调度器) 的优先级转为 react(lane) 的优先级
 export function schedulerPriorityToLane(schedulerPriority: number): Lane {
 	if (schedulerPriority === unstable_ImmediatePriority) {
 		return SyncLane;

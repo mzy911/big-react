@@ -83,18 +83,18 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 	}
 	let newCallbackNode = null;
 
+	// 同步优先级，使用微任务调度
 	if (updateLane === SyncLane) {
-		// 同步优先级 用微任务调度
 		if (__DEV__) {
 			console.log('在微任务中调度，优先级：', updateLane);
 		}
-		// [performSyncWorkOnRoot, performSyncWorkOnRoot, performSyncWorkOnRoot]
 		scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root, updateLane));
 		scheduleMicroTask(flushSyncCallbacks);
 	} else {
-		// 其他优先级 用宏任务调度
+		// 其他优先级，用宏任务调度
 		const schedulerPriority = lanesToSchedulerPriority(updateLane);
 
+		// 宏任务使用 schedule 进行调度，所以使用 schedulerPriority
 		newCallbackNode = scheduleCallback(
 			schedulerPriority,
 			// @ts-ignore
@@ -122,6 +122,7 @@ function markUpdateFromFiberToRoot(fiber: FiberNode) {
 	return null;
 }
 
+// 并发更新
 function performConcurrentWorkOnRoot(
 	root: FiberRootNode,
 	didTimeout: boolean
@@ -140,7 +141,10 @@ function performConcurrentWorkOnRoot(
 	if (lane === NoLane) {
 		return null;
 	}
+
+	// 是否为同步任务
 	const needSync = lane === SyncLane || didTimeout;
+
 	// render阶段
 	const exitStatus = renderRoot(root, lane, !needSync);
 
