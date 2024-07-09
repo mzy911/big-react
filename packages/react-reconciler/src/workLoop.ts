@@ -43,6 +43,7 @@ const RootInComplete = 1;
 const RootCompleted = 2;
 // TODO 执行过程中报错了
 
+// renderRoot 前的准备
 function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 	root.finishedLane = NoLane;
 	root.finishedWork = null;
@@ -50,6 +51,7 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 	wipRootRenderLane = lane;
 }
 
+// 调度更新的总入口
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 	// fiberRootNode
 	const root = markUpdateFromFiberToRoot(fiber);
@@ -59,13 +61,17 @@ export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 
 // schedule阶段入口
 function ensureRootIsScheduled(root: FiberRootNode) {
+	// 获取优先级最高的 lane
 	const updateLane = getHighestPriorityLane(root.pendingLanes);
 	const existingCallback = root.callbackNode;
 
+	// 没有 lane 但是存在回调函数，要先取消
 	if (updateLane === NoLane) {
 		if (existingCallback !== null) {
 			unstable_cancelCallback(existingCallback);
 		}
+
+		// 重置 callbackNode、callbackPriority 状态
 		root.callbackNode = null;
 		root.callbackPriority = NoLane;
 		return;
@@ -74,21 +80,23 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 	const curPriority = updateLane;
 	const prevPriority = root.callbackPriority;
 
+	// 优先级相同直接 return
 	if (curPriority === prevPriority) {
 		return;
 	}
 
+	// 存在更高优先级的任务，取消当前任务
 	if (existingCallback !== null) {
 		unstable_cancelCallback(existingCallback);
 	}
 	let newCallbackNode = null;
 
-	// 同步优先级，使用微任务调度
 	if (updateLane === SyncLane) {
+		// 同步优先级，使用微任务调度
 		if (__DEV__) {
 			console.log('在微任务中调度，优先级：', updateLane);
 		}
-		scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root, updateLane));
+		scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root));
 		scheduleMicroTask(flushSyncCallbacks);
 	} else {
 		// 其他优先级，用宏任务调度
@@ -168,6 +176,7 @@ function performConcurrentWorkOnRoot(
 	}
 }
 
+// 同步任务
 function performSyncWorkOnRoot(root: FiberRootNode) {
 	const nextLane = getHighestPriorityLane(root.pendingLanes);
 
