@@ -39,8 +39,8 @@ let wipRootRenderLane: Lane = NoLane;
 let rootDoesHasPassiveEffects = false;
 
 type RootExitStatus = number;
-const RootInComplete = 1;
-const RootCompleted = 2;
+const RootInComplete = 1; // 任务被打断
+const RootCompleted = 2; // 任务执行完
 // TODO 执行过程中报错了
 
 // renderRoot 前的准备
@@ -55,7 +55,11 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 	// fiberRootNode
 	const root = markUpdateFromFiberToRoot(fiber);
+
+	// 合并当前优先级
 	markRootUpdated(root, lane);
+
+	// 开始调度
 	ensureRootIsScheduled(root);
 }
 
@@ -65,6 +69,7 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 	const updateLane = getHighestPriorityLane(root.pendingLanes);
 	const existingCallback = root.callbackNode;
 
+	// TODO: 为啥
 	// 没有 lane 但是存在回调函数，要先取消
 	if (updateLane === NoLane) {
 		if (existingCallback !== null) {
@@ -89,6 +94,7 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 	if (existingCallback !== null) {
 		unstable_cancelCallback(existingCallback);
 	}
+
 	let newCallbackNode = null;
 
 	if (updateLane === SyncLane) {
@@ -109,6 +115,8 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 			performConcurrentWorkOnRoot.bind(null, root)
 		);
 	}
+
+	// 保存 callbackNode、callbackPriority
 	root.callbackNode = newCallbackNode;
 	root.callbackPriority = curPriority;
 }
@@ -135,7 +143,7 @@ function performConcurrentWorkOnRoot(
 	root: FiberRootNode,
 	didTimeout: boolean
 ): any {
-	// 保证useEffect回调执行
+	// 保证 useEffect 回调执行完成
 	const curCallback = root.callbackNode;
 	const didFlushPassiveEffect = flushPassiveEffects(root.pendingPassiveEffects);
 	if (didFlushPassiveEffect) {
@@ -146,25 +154,32 @@ function performConcurrentWorkOnRoot(
 
 	const lane = getHighestPriorityLane(root.pendingLanes);
 	const curCallbackNode = root.callbackNode;
+
+	// lane 为 NoLane 直接退出
 	if (lane === NoLane) {
 		return null;
 	}
 
-	// 是否为同步任务
+	// 调用异步任务中产生了新的同步任务
 	const needSync = lane === SyncLane || didTimeout;
 
 	// render阶段
 	const exitStatus = renderRoot(root, lane, !needSync);
 
+	// 继续调度
 	ensureRootIsScheduled(root);
 
+	// 中断任务
 	if (exitStatus === RootInComplete) {
-		// 中断
+		// 不是同一个 callBack 直接 return
 		if (root.callbackNode !== curCallbackNode) {
 			return null;
 		}
+		// 是同一个 callBack 继续执行
 		return performConcurrentWorkOnRoot.bind(null, root);
 	}
+
+	// 完成任务，进入 commit 阶段
 	if (exitStatus === RootCompleted) {
 		const finishedWork = root.current.alternate;
 		root.finishedWork = finishedWork;
@@ -178,17 +193,20 @@ function performConcurrentWorkOnRoot(
 
 // 同步任务
 function performSyncWorkOnRoot(root: FiberRootNode) {
+	// 获取当前优先级最高的 lane
 	const nextLane = getHighestPriorityLane(root.pendingLanes);
 
+	// 1、执行同步任务的时候，触发了新的异步任务
+	// 2、继续调度
 	if (nextLane !== SyncLane) {
-		// 其他比SyncLane低的优先级
-		// NoLane
 		ensureRootIsScheduled(root);
 		return;
 	}
 
 	const exitStatus = renderRoot(root, nextLane, false);
 
+	// 1、同步任务进入完成状态
+	// 2、重置状态值、进入 commit 阶段
 	if (exitStatus === RootCompleted) {
 		const finishedWork = root.current.alternate;
 		root.finishedWork = finishedWork;
@@ -202,18 +220,21 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
 	}
 }
 
+// 1、在 workLoop 中进入 render、commit 阶段
+// 2、返回 RootInComplete 或 RootCompleted 状态
 function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
 	if (__DEV__) {
 		console.log(`开始${shouldTimeSlice ? '并发' : '同步'}更新`, root);
 	}
 
 	if (wipRootRenderLane !== lane) {
-		// 初始化
+		// 初始化时执行
 		prepareFreshStack(root, lane);
 	}
 
 	do {
 		try {
+			// workLoop：进入 render、commit 阶段
 			shouldTimeSlice ? workLoopConcurrent() : workLoopSync();
 			break;
 		} catch (e) {
@@ -228,10 +249,12 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
 	if (shouldTimeSlice && workInProgress !== null) {
 		return RootInComplete;
 	}
+
 	// render阶段执行完
 	if (!shouldTimeSlice && workInProgress !== null && __DEV__) {
 		console.error(`render阶段结束时wip不应该不是null`);
 	}
+
 	// TODO 报错
 	return RootCompleted;
 }
@@ -316,11 +339,13 @@ function flushPassiveEffects(pendingPassiveEffects: PendingPassiveEffects) {
 	return didFlushPassiveEffect;
 }
 
+// 同步 Loop
 function workLoopSync() {
 	while (workInProgress !== null) {
 		performUnitOfWork(workInProgress);
 	}
 }
+// 批量异步 Loop
 function workLoopConcurrent() {
 	while (workInProgress !== null && !unstable_shouldYield()) {
 		performUnitOfWork(workInProgress);

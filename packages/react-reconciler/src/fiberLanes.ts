@@ -10,22 +10,28 @@ import { FiberRootNode } from './fiber';
 export type Lane = number;
 export type Lanes = number;
 
-export const SyncLane = 0b0001;
+// 数值越低优先级越高
 export const NoLane = 0b0000;
 export const NoLanes = 0b0000;
-export const InputContinuousLane = 0b0010;
-export const DefaultLane = 0b0100;
-export const IdleLane = 0b1000;
+export const SyncLane = 0b0001; // 同步优先级
+export const InputContinuousLane = 0b0010; // 输入优先级
+export const DefaultLane = 0b0100; // 默认优先级
+export const IdleLane = 0b1000; // 空闲优先级
 
 export function mergeLanes(laneA: Lane, laneB: Lane): Lanes {
 	return laneA | laneB;
 }
 
+// 获取优先级
+// 1、包含两种优先级 Scheduler、lane
+//    Scheduler： 是与 react 结偶的第三方包，有自己的优先级
+//    lane：react 采用 lane 模型，属于自己的优先级
+// 2、调度过程中，需要进行 Scheduler、lane 两种优先级转换
 export function requestUpdateLane() {
-	// 从上下文环境中获取Scheduler优先级
+	// 1、获取 Scheduler 中全局上下文的优先级（自定义事件可以影响到事件优先级）
 	const currentSchedulerPriority = unstable_getCurrentPriorityLevel();
 
-	// 将 schedule(调度器) 的优先级转为 react(lane) 的优先级
+	// 2、将 schedule(调度器) 的优先级转为 react(lane) 的优先级
 	const lane = schedulerPriorityToLane(currentSchedulerPriority);
 	return lane;
 }

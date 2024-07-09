@@ -86,8 +86,9 @@ function dispatchEvent(container: Container, eventType: string, e: Event) {
 function triggerEventFlow(paths: EventCallback[], se: SyntheticEvent) {
 	for (let i = 0; i < paths.length; i++) {
 		const callback = paths[i];
-		// 根据不同的事件类型，绑定不同的事件优先级
-		// 同时将全局的优先级赋值为当前优先级
+		// 1、根据不同的事件类型，绑定不同的事件优先级
+		// 2、同时将全局的优先级赋值为当前优先级
+		// 3、如何影响 react 更新，直接影响 update 对象更新就行了
 		unstable_runWithPriority(eventTypeToSchdulerPriority(se.type), () => {
 			callback.call(null, se);
 		});
@@ -141,13 +142,16 @@ function collectPaths(
 	return paths;
 }
 
+// 给事件绑定优先级
 function eventTypeToSchdulerPriority(eventType: string) {
 	switch (eventType) {
 		case 'click':
 		case 'keydown':
 		case 'keyup':
+			// 同步优先级
 			return unstable_ImmediatePriority;
 		case 'scroll':
+			// user 优先级
 			return unstable_UserBlockingPriority;
 		default:
 			return unstable_NormalPriority;
