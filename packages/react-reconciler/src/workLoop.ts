@@ -45,32 +45,31 @@ const RootCompleted = 2; // 任务执行完
 
 // renderRoot 前的准备
 function prepareFreshStack(root: FiberRootNode, lane: Lane) {
-	root.finishedLane = NoLane;
-	root.finishedWork = null;
-	workInProgress = createWorkInProgress(root.current, {});
+	root.finishedLane = NoLane; // 正在执行 work 的 lane
+	root.finishedWork = null; // 正在执行的 work
+	workInProgress = createWorkInProgress(root.current, {}); // 根据 current 克隆 workInProgress
 	wipRootRenderLane = lane;
 }
 
 // 调度更新的总入口
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
-	// fiberRootNode
+	// 向上找到更节点
 	const root = markUpdateFromFiberToRoot(fiber);
 
-	// 合并当前优先级
+	// 合并当前优先级，存放在 root.pendingLanes 中
 	markRootUpdated(root, lane);
 
 	// 开始调度
 	ensureRootIsScheduled(root);
 }
 
-// schedule阶段入口
+// 开始调度
 function ensureRootIsScheduled(root: FiberRootNode) {
 	// 获取优先级最高的 lane
 	const updateLane = getHighestPriorityLane(root.pendingLanes);
 	const existingCallback = root.callbackNode;
 
-	// TODO: 为啥
-	// 没有 lane 但是存在回调函数，要先取消
+	// NoLane 时，取消遗留的 existingCallback
 	if (updateLane === NoLane) {
 		if (existingCallback !== null) {
 			unstable_cancelCallback(existingCallback);
@@ -85,7 +84,7 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 	const curPriority = updateLane;
 	const prevPriority = root.callbackPriority;
 
-	// 优先级相同直接 return
+	// 执行过程中，新增相同优先级的任务。去执行 existingCallback
 	if (curPriority === prevPriority) {
 		return;
 	}
@@ -145,8 +144,11 @@ function performConcurrentWorkOnRoot(
 ): any {
 	// 保证 useEffect 回调执行完成
 	const curCallback = root.callbackNode;
+	// 说明：useEffect 调用时又触发了更高优先级的任务
 	const didFlushPassiveEffect = flushPassiveEffects(root.pendingPassiveEffects);
+	// 是否存在正在执行的回调
 	if (didFlushPassiveEffect) {
+		// 有更高优先级的任务，取消当前任务
 		if (root.callbackNode !== curCallback) {
 			return null;
 		}
@@ -227,6 +229,7 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
 		console.log(`开始${shouldTimeSlice ? '并发' : '同步'}更新`, root);
 	}
 
+	// 初始化 或 具有更高优先级任务的时候才会进入
 	if (wipRootRenderLane !== lane) {
 		// 初始化时执行
 		prepareFreshStack(root, lane);

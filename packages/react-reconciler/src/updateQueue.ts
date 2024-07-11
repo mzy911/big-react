@@ -62,9 +62,9 @@ export const processUpdateQueue = <State>(
 	baseQueue: Update<State> | null;
 } => {
 	const result: ReturnType<typeof processUpdateQueue<State>> = {
-		memoizedState: baseState,
-		baseState,
-		baseQueue: null
+		memoizedState: baseState, // 考虑优先级的计算结果
+		baseState, // 最后一个没有被跳过的计算结果
+		baseQueue: null // 存储跳过及后续的update
 	};
 
 	if (pendingUpdate !== null) {
@@ -97,6 +97,7 @@ export const processUpdateQueue = <State>(
 			} else {
 				// 优先级足够
 				if (newBaseQueueLast !== null) {
+					// 如果 newBaseQueueLast 存在，所有 pending 的优先级降级为 NoLane
 					const clone = createUpdate(pending.action, NoLane);
 					newBaseQueueLast.next = clone;
 					newBaseQueueLast = clone;

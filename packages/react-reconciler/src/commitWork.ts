@@ -46,6 +46,7 @@ export const commitMutationEffects = (
 		} else {
 			// 向上遍历 DFS
 			up: while (nextEffect !== null) {
+				// 执行带有副作用的 Fiber
 				commitMutaitonEffectsOnFiber(nextEffect, root);
 				const sibling: FiberNode | null = nextEffect.sibling;
 
@@ -59,20 +60,26 @@ export const commitMutationEffects = (
 	}
 };
 
+// 执行带有副作用的 Fiber
 const commitMutaitonEffectsOnFiber = (
 	finishedWork: FiberNode,
 	root: FiberRootNode
 ) => {
 	const flags = finishedWork.flags;
 
+	// 新增
 	if ((flags & Placement) !== NoFlags) {
 		commitPlacement(finishedWork);
 		finishedWork.flags &= ~Placement;
 	}
+
+	// 更新
 	if ((flags & Update) !== NoFlags) {
 		commitUpdate(finishedWork);
 		finishedWork.flags &= ~Update;
 	}
+
+	// 删除
 	if ((flags & ChildDeletion) !== NoFlags) {
 		const deletions = finishedWork.deletions;
 		if (deletions !== null) {
@@ -82,6 +89,8 @@ const commitMutaitonEffectsOnFiber = (
 		}
 		finishedWork.flags &= ~ChildDeletion;
 	}
+
+	// PassiveEffect
 	if ((flags & PassiveEffect) !== NoFlags) {
 		// 收集回调
 		commitPassiveEffect(finishedWork, root, 'update');
