@@ -89,6 +89,7 @@ const HooksDispatcherOnUpdate: Dispatcher = {
 };
 
 function mountEffect(create: EffectCallback | void, deps: EffectDeps | void) {
+	// 一个 useEffect 产生一个 hook
 	const hook = mountWorkInProgresHook();
 	const nextDeps = deps === undefined ? null : deps;
 	(currentlyRenderingFiber as FiberNode).flags |= PassiveEffect;
@@ -158,9 +159,13 @@ function pushEffect(
 	const fiber = currentlyRenderingFiber as FiberNode;
 	const updateQueue = fiber.updateQueue as FCUpdateQueue<any>;
 	if (updateQueue === null) {
+		// 创建函数组件 useEffct 的 update 队列
 		const updateQueue = createFCUpdateQueue();
+		// 绑定到 fiber 上
 		fiber.updateQueue = updateQueue;
+		// 形成环状链表
 		effect.next = effect;
+		// 记录 lastEffect
 		updateQueue.lastEffect = effect;
 	} else {
 		// 插入effect
@@ -284,7 +289,7 @@ function updateWorkInProgresHook(): Hook {
 function mountState<State>(
 	initialState: (() => State) | State
 ): [State, Dispatch<State>] {
-	// 找到当前useState对应的hook数据
+	// 一个 useState 产生一个 hook
 	const hook = mountWorkInProgresHook();
 	let memoizedState;
 	if (initialState instanceof Function) {

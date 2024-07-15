@@ -25,11 +25,11 @@ export class FiberNode {
 	index: number;
 
 	memoizedProps: Props | null;
-	memoizedState: any;
+	memoizedState: any; // hooks 链表
 	alternate: FiberNode | null;
 	flags: Flags;
 	subtreeFlags: Flags;
-	updateQueue: unknown;
+	updateQueue: unknown; // 函数组件 useEffct 的 update 队列
 	deletions: FiberNode[] | null;
 
 	constructor(tag: WorkTag, pendingProps: Props, key: Key) {
