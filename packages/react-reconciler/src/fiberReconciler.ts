@@ -29,6 +29,7 @@ export function updateContainer(
 		hostRootFiber.updateQueue as UpdateQueue<ReactElementType | null>,
 		update
 	);
+	// 首次渲染进行调度
 	scheduleUpdateOnFiber(hostRootFiber, lane);
 	return element;
 }

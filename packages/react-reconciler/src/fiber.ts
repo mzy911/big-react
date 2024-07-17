@@ -25,7 +25,7 @@ export class FiberNode {
 	index: number;
 
 	memoizedProps: Props | null;
-	memoizedState: any; // hooks 链表
+	memoizedState: any; // 函数组件 hooks(useState、useEffect) 链表
 	alternate: FiberNode | null;
 	flags: Flags;
 	subtreeFlags: Flags;
@@ -76,7 +76,7 @@ export class FiberRootNode {
 	finishedLane: Lane;
 	pendingPassiveEffects: PendingPassiveEffects;
 
-	callbackNode: CallbackNode | null;
+	callbackNode: CallbackNode | null; // 执行宏任务返回的函数
 	callbackPriority: Lane;
 
 	constructor(container: Container, hostRootFiber: FiberNode) {

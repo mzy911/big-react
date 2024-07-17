@@ -35,6 +35,7 @@ export const createUpdateQueue = <State>() => {
 	} as UpdateQueue<State>;
 };
 
+// enqueueUpdate 中插入新的 update 对象
 export const enqueueUpdate = <State>(
 	updateQueue: UpdateQueue<State>,
 	update: Update<State>
@@ -52,6 +53,7 @@ export const enqueueUpdate = <State>(
 	updateQueue.shared.pending = update;
 };
 
+// 消费 update
 export const processUpdateQueue = <State>(
 	baseState: State,
 	pendingUpdate: Update<State> | null,
@@ -72,10 +74,14 @@ export const processUpdateQueue = <State>(
 		const first = pendingUpdate.next;
 		let pending = pendingUpdate.next as Update<any>;
 
+		// 记录被跳过之前的最后一个值
 		let newBaseState = baseState;
-		let newBaseQueueFirst: Update<State> | null = null;
-		let newBaseQueueLast: Update<State> | null = null;
+		// 每次执行 action 返回的最新值
 		let newState = baseState;
+		// 记录第一个被跳过的 update
+		let newBaseQueueFirst: Update<State> | null = null;
+		// 记录最后一个（形成链表）
+		let newBaseQueueLast: Update<State> | null = null;
 
 		do {
 			const updateLane = pending.lane;
@@ -103,12 +109,11 @@ export const processUpdateQueue = <State>(
 					newBaseQueueLast = clone;
 				}
 
+				// 真正执行 action 的地方
 				const action = pending.action;
 				if (action instanceof Function) {
-					// baseState 1 update (x) => 4x -> memoizedState 4
 					newState = action(baseState);
 				} else {
-					// baseState 1 update 2 -> memoizedState 2
 					newState = action;
 				}
 			}

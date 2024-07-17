@@ -13,6 +13,7 @@ export function createRoot(container: Container) {
 
 	return {
 		render(element: ReactElementType) {
+			// 容器节点监听事件
 			initEvent(container, 'click');
 			return updateContainer(element, root);
 		}
