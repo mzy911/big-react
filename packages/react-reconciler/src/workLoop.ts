@@ -96,6 +96,8 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 
 	let newCallbackNode = null;
 
+	console.log('优先级');
+
 	if (updateLane === SyncLane) {
 		// 同步优先级，使用微任务调度
 		if (__DEV__) {
@@ -226,7 +228,7 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
 // 2、返回 RootInComplete 或 RootCompleted 状态
 function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
 	if (__DEV__) {
-		console.log(`开始${shouldTimeSlice ? '并发' : '同步'}更新`, root);
+		// console.log(`开始${shouldTimeSlice ? '并发' : '同步'}更新`, root);
 	}
 
 	// 初始化 或 具有更高优先级任务的时候才会进入
