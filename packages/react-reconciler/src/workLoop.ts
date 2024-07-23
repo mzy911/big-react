@@ -126,6 +126,7 @@ function markRootUpdated(root: FiberRootNode, lane: Lane) {
 	root.pendingLanes = mergeLanes(root.pendingLanes, lane);
 }
 
+// 从当前节点向上找到根节点
 function markUpdateFromFiberToRoot(fiber: FiberNode) {
 	let node = fiber;
 	let parent = node.return;
@@ -200,6 +201,7 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
 	// 获取当前优先级最高的 lane
 	const nextLane = getHighestPriorityLane(root.pendingLanes);
 
+	// 发现新的非同步任务，开始新的调度
 	// 1、执行同步任务的时候，触发了新的异步任务
 	// 2、继续调度
 	if (nextLane !== SyncLane) {
@@ -357,6 +359,7 @@ function workLoopConcurrent() {
 	}
 }
 
+// 进入 beginWork 阶段
 function performUnitOfWork(fiber: FiberNode) {
 	const next = beginWork(fiber, wipRootRenderLane);
 	fiber.memoizedProps = fiber.pendingProps;
@@ -368,6 +371,7 @@ function performUnitOfWork(fiber: FiberNode) {
 	}
 }
 
+// 进入 completeWork 阶段
 function completeUnitOfWork(fiber: FiberNode) {
 	let node: FiberNode | null = fiber;
 
