@@ -61,7 +61,7 @@ export class FiberNode {
   dependencies: FiberDependencies<any> | null;
 
   // 优先级
-  lanes: Lanes;
+  lanes: Lanes; // 用于存储当前
   childLanes: Lanes;
 
   constructor(tag: WorkTag, pendingProps: Props, key: Key) {

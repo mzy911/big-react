@@ -2,3 +2,6 @@
 /**/node_modules
 .history
 dist
+/.idea/jsLinters/eslint.xml
+/.idea/prettier.xml
+/.idea/codeStyles

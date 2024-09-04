@@ -18,19 +18,19 @@ export interface ContextItem<Value> {
   next: ContextItem<Value> | null;
 }
 
+// 保存上一次 Context 的值
 let prevContextValue: any = null;
+// 保存 Context 所有的值
 const prevContextValueStack: any[] = [];
 
 export function pushProvider<T>(context: ReactContext<T>, newValue: T) {
   prevContextValueStack.push(prevContextValue);
-
   prevContextValue = context._currentValue;
   context._currentValue = newValue;
 }
 
 export function popProvider<T>(context: ReactContext<T>) {
   context._currentValue = prevContextValue;
-
   prevContextValue = prevContextValueStack.pop();
 }
 
