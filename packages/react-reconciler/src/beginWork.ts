@@ -34,26 +34,7 @@ export const beginWork = (wip: FiberNode) => {
 	return null;
 };
 
-// TODO：Fragment 的 children 是 pendingProps
-// 1、createFiberFromFragment(element.props.children, key);
-// 2、new FiberNode(Fragment, elements, key);
-// 3、constructor(tag: WorkTag, pendingProps: Props, key: Key)
-function updateFragment(wip: FiberNode) {
-	const nextChildren = wip.pendingProps;
-	reconcileChildren(wip, nextChildren);
-	return wip.child;
-}
-
-// TODO：FunctionComponent 的 children 是函数组件方法调用的结果
-// 1、renderWithHooks(wip);
-// 2、const children = Component(props);
-function updateFunctionComponent(wip: FiberNode) {
-	const nextChildren = renderWithHooks(wip);
-	reconcileChildren(wip, nextChildren);
-	return wip.child;
-}
-
-// TODO：HostRoot 的 children 是 memoizedState
+// HostRoot 的 children 是 memoizedState
 // 1、baseState 为 null
 // 2、此时 update 中 action 为 Element
 function updateHostRoot(wip: FiberNode) {
@@ -61,7 +42,6 @@ function updateHostRoot(wip: FiberNode) {
 	const updateQueue = wip.updateQueue as UpdateQueue<Element>;
 	const pending = updateQueue.shared.pending;
 	updateQueue.shared.pending = null;
-	// 消费 updata 返回 { memoizedState }
 	const { memoizedState } = processUpdateQueue(baseState, pending);
 	wip.memoizedState = memoizedState;
 
@@ -70,7 +50,26 @@ function updateHostRoot(wip: FiberNode) {
 	return wip.child;
 }
 
-// TODO：HostComponent 的 children 是 pendingProps.children
+// Fragment 的 children 为 wip.pendingProps
+function updateFragment(wip: FiberNode) {
+	// 1、createFiberFromFragment(element.props.children, key);
+	// 2、new FiberNode(Fragment, elements, key);
+	//   Fragment：fiber 的 tag 类型，elements：fiber 的 pendingProps 属性
+	const nextChildren = wip.pendingProps;
+	reconcileChildren(wip, nextChildren);
+	return wip.child;
+}
+
+// FunctionComponent 的 children 是函数组件方法调用的结果
+// 1、renderWithHooks(wip);
+// 2、const children = Component(props);
+function updateFunctionComponent(wip: FiberNode) {
+	const nextChildren = renderWithHooks(wip);
+	reconcileChildren(wip, nextChildren);
+	return wip.child;
+}
+
+// HostComponent 的 children 是 pendingProps.children
 // 1、createFiberFromElement(element);
 // 2、const { type, key, props } = element;
 // 3、new FiberNode(fiberTag, props, key);

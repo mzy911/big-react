@@ -57,9 +57,13 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 					// type相同
 					if (currentFiber.type === element.type) {
 						let props = element.props;
+
+						// 如果当前节点为 Fragment，children 作为新 fiber 的 props
 						if (element.type === REACT_FRAGMENT_TYPE) {
 							props = element.props.children;
 						}
+
+						// 复用 Fiber、传入新的 props
 						const existing = useFiber(currentFiber, props);
 						existing.return = returnFiber;
 
@@ -87,8 +91,10 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		// mount 阶段：创建 Fragment、Element 节点的 Fiber
 		let fiber;
 		if (element.type === REACT_FRAGMENT_TYPE) {
+			// 创建 Fragment 的 Fiber
 			fiber = createFiberFromFragment(element.props.children, key);
 		} else {
+			// 创建 Element 的 Fiber
 			fiber = createFiberFromElement(element);
 		}
 		fiber.return = returnFiber;
