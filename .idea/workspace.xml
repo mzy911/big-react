@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
@@ -16,12 +15,29 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
+        <entry key="$PROJECT_DIR$" value="big-react-concurrence" />
+      </map>
+    </option>
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
         <entry key="$PROJECT_DIR$" value="master" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RESET_MODE" value="HARD" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;mzy911&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/mzy911/big-react.git&quot;,
+    &quot;accountId&quot;: &quot;2fdf870b-66f0-4df1-ace7-46ae12502667&quot;
+  }
+}</component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -118,7 +134,23 @@
       <option name="project" value="LOCAL" />
       <updated>1716535906066</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="feat: idea">
+      <option name="closed" value="true" />
+      <created>1725501981192</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1725501981192</updated>
+    </task>
+    <task id="LOCAL-00007" summary="feat: idea">
+      <option name="closed" value="true" />
+      <created>1725501997790</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1725501997790</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -149,6 +181,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="feat: 学习" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: 学习" />
+    <MESSAGE value="feat: save" />
+    <MESSAGE value="feat: idea" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: idea" />
   </component>
 </project>
