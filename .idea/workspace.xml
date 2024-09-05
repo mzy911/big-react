@@ -4,23 +4,27 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="84f49246-e140-4f80-951f-df336e270314" name="Changes" comment="feat: 学习">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/beginWork.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/beginWork.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/childFibers.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/childFibers.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/completeWork.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/completeWork.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/fiberHooks.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/fiberHooks.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/updateQueue.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/updateQueue.ts" afterDir="false" />
-    </list>
+    <list default="true" id="84f49246-e140-4f80-951f-df336e270314" name="Changes" comment="feat: save" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="big-react-concurrence" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RESET_MODE" value="HARD" />
   </component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/mzy911/big-react.git",
+    "accountId": "2fdf870b-66f0-4df1-ace7-46ae12502667"
+  }
+}]]></component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -36,19 +40,20 @@
     <option name="showLibraryContents" value="true" />
     <option name="showScratchesAndConsoles" value="false" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;pnpm&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/Users/meng/Desktop/learn/big-react-demo/node_modules/typescript/lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "big-react-base",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "pnpm",
+    "ts.external.directory.path": "/Users/meng/Desktop/learn/big-react/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -143,6 +148,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="feat: 学习" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: 学习" />
+    <MESSAGE value="feat: save" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: save" />
   </component>
 </project>
