@@ -1,0 +1,94 @@
+Index: demos/test-fc/main.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { useState, useEffect } from 'react';\nimport ReactDOM from 'react-dom';\n\nfunction App() {\n\tconst [num, update] = useState(100);\n\treturn (\n\t\t<ul onClick={() => update(50)}>\n\t\t\t{new Array(num).fill(0).map((_, i) => {\n\t\t\t\treturn <Child key={i}>{i}</Child>;\n\t\t\t})}\n\t\t</ul>\n\t);\n}\n\nfunction Child({ children }) {\n\tconst now = performance.now();\n\twhile (performance.now() - now < 4) {}\n\treturn <li>{children}</li>;\n}\n\nconst root = ReactDOM.createRoot(document.querySelector('#root'));\n\nroot.render(<App />);\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/demos/test-fc/main.tsx b/demos/test-fc/main.tsx
+--- a/demos/test-fc/main.tsx	(revision cb8a30f2d3878374903288aab83bf82a10d79f92)
++++ b/demos/test-fc/main.tsx	(date 1721366353364)
+@@ -3,13 +3,15 @@
+ 
+ function App() {
+ 	const [num, update] = useState(100);
+-	return (
+-		<ul onClick={() => update(50)}>
+-			{new Array(num).fill(0).map((_, i) => {
+-				return <Child key={i}>{i}</Child>;
+-			})}
+-		</ul>
+-	);
++
++	return <div>123ß</div>;
++	// return (
++	// 	<ul onClick={() => update(50)}>
++	// 		{new Array(num).fill(0).map((_, i) => {
++	// 			return <Child key={i}>{i}</Child>;
++	// 		})}
++	// 	</ul>
++	// );
+ }
+ 
+ function Child({ children }) {
+Index: packages/react-reconciler/src/fiberReconciler.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { Container } from 'hostConfig';\nimport { ReactElementType } from 'shared/ReactTypes';\nimport { FiberNode, FiberRootNode } from './fiber';\nimport { requestUpdateLane } from './fiberLanes';\nimport {\n\tcreateUpdate,\n\tcreateUpdateQueue,\n\tenqueueUpdate,\n\tUpdateQueue\n} from './updateQueue';\nimport { scheduleUpdateOnFiber } from './workLoop';\nimport { HostRoot } from './workTags';\n\nexport function createContainer(container: Container) {\n\tconst hostRootFiber = new FiberNode(HostRoot, {}, null);\n\tconst root = new FiberRootNode(container, hostRootFiber);\n\thostRootFiber.updateQueue = createUpdateQueue();\n\treturn root;\n}\n\nexport function updateContainer(\n\telement: ReactElementType | null,\n\troot: FiberRootNode\n) {\n\tconst hostRootFiber = root.current;\n\tconst lane = requestUpdateLane();\n\tconst update = createUpdate<ReactElementType | null>(element, lane);\n\tenqueueUpdate(\n\t\thostRootFiber.updateQueue as UpdateQueue<ReactElementType | null>,\n\t\tupdate\n\t);\n\t// 首次渲染进行调度\n\tscheduleUpdateOnFiber(hostRootFiber, lane);\n\treturn element;\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/packages/react-reconciler/src/fiberReconciler.ts b/packages/react-reconciler/src/fiberReconciler.ts
+--- a/packages/react-reconciler/src/fiberReconciler.ts	(revision cb8a30f2d3878374903288aab83bf82a10d79f92)
++++ b/packages/react-reconciler/src/fiberReconciler.ts	(date 1721365023483)
+@@ -15,6 +15,7 @@
+ 	const hostRootFiber = new FiberNode(HostRoot, {}, null);
+ 	const root = new FiberRootNode(container, hostRootFiber);
+ 	hostRootFiber.updateQueue = createUpdateQueue();
++
+ 	return root;
+ }
+ 
+Index: packages/react-reconciler/src/workLoop.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import { scheduleMicroTask } from 'hostConfig';\nimport { beginWork } from './beginWork';\nimport {\n\tcommitHookEffectListCreate,\n\tcommitHookEffectListDestroy,\n\tcommitHookEffectListUnmount,\n\tcommitMutationEffects\n} from './commitWork';\nimport { completeWork } from './completeWork';\nimport {\n\tcreateWorkInProgress,\n\tFiberNode,\n\tFiberRootNode,\n\tPendingPassiveEffects\n} from './fiber';\nimport { MutationMask, NoFlags, PassiveMask } from './fiberFlags';\nimport {\n\tgetHighestPriorityLane,\n\tLane,\n\tlanesToSchedulerPriority,\n\tmarkRootFinished,\n\tmergeLanes,\n\tNoLane,\n\tSyncLane\n} from './fiberLanes';\nimport { flushSyncCallbacks, scheduleSyncCallback } from './syncTaskQueue';\nimport { HostRoot } from './workTags';\nimport {\n\tunstable_scheduleCallback as scheduleCallback,\n\tunstable_NormalPriority as NormalPriority,\n\tunstable_shouldYield,\n\tunstable_cancelCallback\n} from 'scheduler';\nimport { HookHasEffect, Passive } from './hookEffectTags';\nimport { useEffect } from 'react';\n\nlet workInProgress: FiberNode | null = null;\nlet wipRootRenderLane: Lane = NoLane;\nlet rootDoesHasPassiveEffects = false;\n\ntype RootExitStatus = number;\nconst RootInComplete = 1; // 任务被打断\nconst RootCompleted = 2; // 任务执行完\n// TODO 执行过程中报错了\n\n// renderRoot 前的准备\nfunction prepareFreshStack(root: FiberRootNode, lane: Lane) {\n\troot.finishedLane = NoLane; // 正在执行 work 的 lane\n\troot.finishedWork = null; // 正在执行的 work\n\tworkInProgress = createWorkInProgress(root.current, {}); // 根据 current 克隆 workInProgress\n\twipRootRenderLane = lane;\n}\n\n// 调度更新的总入口\nexport function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {\n\t// 向上找到更节点\n\tconst root = markUpdateFromFiberToRoot(fiber);\n\n\t// 合并当前优先级，存放在 root.pendingLanes 中\n\tmarkRootUpdated(root, lane);\n\n\t// 开始调度\n\tensureRootIsScheduled(root);\n}\n\n// 开始调度\nfunction ensureRootIsScheduled(root: FiberRootNode) {\n\t// 获取优先级最高的 lane\n\tconst updateLane = getHighestPriorityLane(root.pendingLanes);\n\tconst existingCallback = root.callbackNode;\n\n\t// NoLane 时，取消遗留的 existingCallback\n\tif (updateLane === NoLane) {\n\t\tif (existingCallback !== null) {\n\t\t\tunstable_cancelCallback(existingCallback);\n\t\t}\n\n\t\t// 重置 callbackNode、callbackPriority 状态\n\t\troot.callbackNode = null;\n\t\troot.callbackPriority = NoLane;\n\t\treturn;\n\t}\n\n\tconst curPriority = updateLane;\n\tconst prevPriority = root.callbackPriority;\n\n\t// 执行过程中，新增相同优先级的任务。去执行 existingCallback\n\tif (curPriority === prevPriority) {\n\t\treturn;\n\t}\n\n\t// 存在更高优先级的任务，取消当前任务\n\tif (existingCallback !== null) {\n\t\tunstable_cancelCallback(existingCallback);\n\t}\n\n\tlet newCallbackNode = null;\n\n\tif (updateLane === SyncLane) {\n\t\t// 同步优先级，使用微任务调度\n\t\tif (__DEV__) {\n\t\t\tconsole.log('在微任务中调度，优先级：', updateLane);\n\t\t}\n\t\tscheduleSyncCallback(performSyncWorkOnRoot.bind(null, root));\n\t\tscheduleMicroTask(flushSyncCallbacks);\n\t} else {\n\t\t// 其他优先级，用宏任务调度\n\t\tconst schedulerPriority = lanesToSchedulerPriority(updateLane);\n\n\t\t// 宏任务使用 schedule 进行调度，所以使用 schedulerPriority\n\t\tnewCallbackNode = scheduleCallback(\n\t\t\tschedulerPriority,\n\t\t\t// @ts-ignore\n\t\t\tperformConcurrentWorkOnRoot.bind(null, root)\n\t\t);\n\t}\n\n\t// 保存 callbackNode、callbackPriority\n\troot.callbackNode = newCallbackNode;\n\troot.callbackPriority = curPriority;\n}\n\nfunction markRootUpdated(root: FiberRootNode, lane: Lane) {\n\troot.pendingLanes = mergeLanes(root.pendingLanes, lane);\n}\n\nfunction markUpdateFromFiberToRoot(fiber: FiberNode) {\n\tlet node = fiber;\n\tlet parent = node.return;\n\twhile (parent !== null) {\n\t\tnode = parent;\n\t\tparent = node.return;\n\t}\n\tif (node.tag === HostRoot) {\n\t\treturn node.stateNode;\n\t}\n\treturn null;\n}\n\n// 并发更新\nfunction performConcurrentWorkOnRoot(\n\troot: FiberRootNode,\n\tdidTimeout: boolean\n): any {\n\t// 保证 useEffect 回调执行完成\n\tconst curCallback = root.callbackNode;\n\t// 说明：useEffect 调用时又触发了更高优先级的任务\n\tconst didFlushPassiveEffect = flushPassiveEffects(root.pendingPassiveEffects);\n\t// 是否存在正在执行的回调\n\tif (didFlushPassiveEffect) {\n\t\t// 有更高优先级的任务，取消当前任务\n\t\tif (root.callbackNode !== curCallback) {\n\t\t\treturn null;\n\t\t}\n\t}\n\n\tconst lane = getHighestPriorityLane(root.pendingLanes);\n\tconst curCallbackNode = root.callbackNode;\n\n\t// lane 为 NoLane 直接退出\n\tif (lane === NoLane) {\n\t\treturn null;\n\t}\n\n\t// 调用异步任务中产生了新的同步任务\n\tconst needSync = lane === SyncLane || didTimeout;\n\n\t// render阶段\n\tconst exitStatus = renderRoot(root, lane, !needSync);\n\n\t// 继续调度\n\tensureRootIsScheduled(root);\n\n\t// 中断任务\n\tif (exitStatus === RootInComplete) {\n\t\t// 不是同一个 callBack 直接 return\n\t\tif (root.callbackNode !== curCallbackNode) {\n\t\t\treturn null;\n\t\t}\n\t\t// 是同一个 callBack 继续执行\n\t\treturn performConcurrentWorkOnRoot.bind(null, root);\n\t}\n\n\t// 完成任务，进入 commit 阶段\n\tif (exitStatus === RootCompleted) {\n\t\tconst finishedWork = root.current.alternate;\n\t\troot.finishedWork = finishedWork;\n\t\troot.finishedLane = lane;\n\t\twipRootRenderLane = NoLane;\n\t\tcommitRoot(root);\n\t} else if (__DEV__) {\n\t\tconsole.error('还未实现的并发更新结束状态');\n\t}\n}\n\n// 同步任务\nfunction performSyncWorkOnRoot(root: FiberRootNode) {\n\t// 获取当前优先级最高的 lane\n\tconst nextLane = getHighestPriorityLane(root.pendingLanes);\n\n\t// 1、执行同步任务的时候，触发了新的异步任务\n\t// 2、继续调度\n\tif (nextLane !== SyncLane) {\n\t\tensureRootIsScheduled(root);\n\t\treturn;\n\t}\n\n\tconst exitStatus = renderRoot(root, nextLane, false);\n\n\t// 1、同步任务进入完成状态\n\t// 2、重置状态值、进入 commit 阶段\n\tif (exitStatus === RootCompleted) {\n\t\tconst finishedWork = root.current.alternate;\n\t\troot.finishedWork = finishedWork;\n\t\troot.finishedLane = nextLane;\n\t\twipRootRenderLane = NoLane;\n\n\t\t// wip fiberNode树 树中的flags\n\t\tcommitRoot(root);\n\t} else if (__DEV__) {\n\t\tconsole.error('还未实现的同步更新结束状态');\n\t}\n}\n\n// 1、在 workLoop 中进入 render、commit 阶段\n// 2、返回 RootInComplete 或 RootCompleted 状态\nfunction renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {\n\tif (__DEV__) {\n\t\tconsole.log(`开始${shouldTimeSlice ? '并发' : '同步'}更新`, root);\n\t}\n\n\t// 初始化 或 具有更高优先级任务的时候才会进入\n\tif (wipRootRenderLane !== lane) {\n\t\t// 初始化时执行\n\t\tprepareFreshStack(root, lane);\n\t}\n\n\tdo {\n\t\ttry {\n\t\t\t// workLoop：进入 render、commit 阶段\n\t\t\tshouldTimeSlice ? workLoopConcurrent() : workLoopSync();\n\t\t\tbreak;\n\t\t} catch (e) {\n\t\t\tif (__DEV__) {\n\t\t\t\tconsole.warn('workLoop发生错误', e);\n\t\t\t}\n\t\t\tworkInProgress = null;\n\t\t}\n\t} while (true);\n\n\t// 中断执行\n\tif (shouldTimeSlice && workInProgress !== null) {\n\t\treturn RootInComplete;\n\t}\n\n\t// render阶段执行完\n\tif (!shouldTimeSlice && workInProgress !== null && __DEV__) {\n\t\tconsole.error(`render阶段结束时wip不应该不是null`);\n\t}\n\n\t// TODO 报错\n\treturn RootCompleted;\n}\n\nfunction commitRoot(root: FiberRootNode) {\n\tconst finishedWork = root.finishedWork;\n\n\tif (finishedWork === null) {\n\t\treturn;\n\t}\n\n\tif (__DEV__) {\n\t\tconsole.warn('commit阶段开始', finishedWork);\n\t}\n\tconst lane = root.finishedLane;\n\n\tif (lane === NoLane && __DEV__) {\n\t\tconsole.error('commit阶段finishedLane不应该是NoLane');\n\t}\n\n\t// 重置\n\troot.finishedWork = null;\n\troot.finishedLane = NoLane;\n\n\tmarkRootFinished(root, lane);\n\n\tif (\n\t\t(finishedWork.flags & PassiveMask) !== NoFlags ||\n\t\t(finishedWork.subtreeFlags & PassiveMask) !== NoFlags\n\t) {\n\t\tif (!rootDoesHasPassiveEffects) {\n\t\t\trootDoesHasPassiveEffects = true;\n\t\t\t// 调度副作用\n\t\t\tscheduleCallback(NormalPriority, () => {\n\t\t\t\t// 执行副作用\n\t\t\t\tflushPassiveEffects(root.pendingPassiveEffects);\n\t\t\t\treturn;\n\t\t\t});\n\t\t}\n\t}\n\n\t// 判断是否存在3个子阶段需要执行的操作\n\t// root flags root subtreeFlags\n\tconst subtreeHasEffect =\n\t\t(finishedWork.subtreeFlags & MutationMask) !== NoFlags;\n\tconst rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;\n\n\tif (subtreeHasEffect || rootHasEffect) {\n\t\t// beforeMutation\n\t\t// mutation Placement\n\t\tcommitMutationEffects(finishedWork, root);\n\n\t\troot.current = finishedWork;\n\n\t\t// layout\n\t} else {\n\t\troot.current = finishedWork;\n\t}\n\n\trootDoesHasPassiveEffects = false;\n\tensureRootIsScheduled(root);\n}\n\nfunction flushPassiveEffects(pendingPassiveEffects: PendingPassiveEffects) {\n\tlet didFlushPassiveEffect = false;\n\tpendingPassiveEffects.unmount.forEach((effect) => {\n\t\tdidFlushPassiveEffect = true;\n\t\tcommitHookEffectListUnmount(Passive, effect);\n\t});\n\tpendingPassiveEffects.unmount = [];\n\n\tpendingPassiveEffects.update.forEach((effect) => {\n\t\tdidFlushPassiveEffect = true;\n\t\tcommitHookEffectListDestroy(Passive | HookHasEffect, effect);\n\t});\n\tpendingPassiveEffects.update.forEach((effect) => {\n\t\tdidFlushPassiveEffect = true;\n\t\tcommitHookEffectListCreate(Passive | HookHasEffect, effect);\n\t});\n\tpendingPassiveEffects.update = [];\n\tflushSyncCallbacks();\n\treturn didFlushPassiveEffect;\n}\n\n// 同步 Loop\nfunction workLoopSync() {\n\twhile (workInProgress !== null) {\n\t\tperformUnitOfWork(workInProgress);\n\t}\n}\n// 批量异步 Loop\nfunction workLoopConcurrent() {\n\twhile (workInProgress !== null && !unstable_shouldYield()) {\n\t\tperformUnitOfWork(workInProgress);\n\t}\n}\n\nfunction performUnitOfWork(fiber: FiberNode) {\n\tconst next = beginWork(fiber, wipRootRenderLane);\n\tfiber.memoizedProps = fiber.pendingProps;\n\n\tif (next === null) {\n\t\tcompleteUnitOfWork(fiber);\n\t} else {\n\t\tworkInProgress = next;\n\t}\n}\n\nfunction completeUnitOfWork(fiber: FiberNode) {\n\tlet node: FiberNode | null = fiber;\n\n\tdo {\n\t\tcompleteWork(node);\n\t\tconst sibling = node.sibling;\n\n\t\tif (sibling !== null) {\n\t\t\tworkInProgress = sibling;\n\t\t\treturn;\n\t\t}\n\t\tnode = node.return;\n\t\tworkInProgress = node;\n\t} while (node !== null);\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/packages/react-reconciler/src/workLoop.ts b/packages/react-reconciler/src/workLoop.ts
+--- a/packages/react-reconciler/src/workLoop.ts	(revision cb8a30f2d3878374903288aab83bf82a10d79f92)
++++ b/packages/react-reconciler/src/workLoop.ts	(date 1721366431932)
+@@ -56,6 +56,8 @@
+ 	// 向上找到更节点
+ 	const root = markUpdateFromFiberToRoot(fiber);
+ 
++	console.log('入口');
++
+ 	// 合并当前优先级，存放在 root.pendingLanes 中
+ 	markRootUpdated(root, lane);
+ 
+@@ -101,11 +103,14 @@
+ 		if (__DEV__) {
+ 			console.log('在微任务中调度，优先级：', updateLane);
+ 		}
++		console.log('同步');
++
+ 		scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root));
+ 		scheduleMicroTask(flushSyncCallbacks);
+ 	} else {
+ 		// 其他优先级，用宏任务调度
+ 		const schedulerPriority = lanesToSchedulerPriority(updateLane);
++		console.log('异步', updateLane, schedulerPriority);
+ 
+ 		// 宏任务使用 schedule 进行调度，所以使用 schedulerPriority
+ 		newCallbackNode = scheduleCallback(
+@@ -226,7 +231,7 @@
+ // 2、返回 RootInComplete 或 RootCompleted 状态
+ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
+ 	if (__DEV__) {
+-		console.log(`开始${shouldTimeSlice ? '并发' : '同步'}更新`, root);
++		// console.log(`开始${shouldTimeSlice ? '并发' : '同步'}更新`, root);
+ 	}
+ 
+ 	// 初始化 或 具有更高优先级任务的时候才会进入
