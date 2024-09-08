@@ -150,7 +150,7 @@ function commitRoot(root: FiberRootNode) {
 	// commit 之前需要移除 lane
 	markRootFinished(root, lane);
 
-	// schedule 的调度在 commit 阶段
+	// schedule 的调度在 commit 阶段（处理 useEffect 的副作用函数）
 	if (
 		(finishedWork.flags & PassiveMask) !== NoFlags ||
 		(finishedWork.subtreeFlags & PassiveMask) !== NoFlags
@@ -185,7 +185,10 @@ function commitRoot(root: FiberRootNode) {
 		root.current = finishedWork;
 	}
 
+	// 重制状态
 	rootDoesHasPassiveEffects = false;
+
+	// 重新调度
 	ensureRootIsScheduled(root);
 }
 

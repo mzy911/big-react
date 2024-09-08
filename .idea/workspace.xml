@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="84f49246-e140-4f80-951f-df336e270314" name="Changes" comment="feat: 学习">
+      <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/fiberFlags.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/fiberFlags.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/hookEffectTags.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/hookEffectTags.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/react-reconciler/src/workLoop.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/react-reconciler/src/workLoop.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="big-react-base" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;mzy911&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/mzy911/big-react.git&quot;,
+    &quot;accountId&quot;: &quot;2fdf870b-66f0-4df1-ace7-46ae12502667&quot;
+  }
+}</component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="PackageJsonUpdateNotifier">
+    <dismissed value="$PROJECT_DIR$/package.json" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
+  <component name="ProjectId" id="2gIxZBBYieJhzH8y0sjTmjVBhEY" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showScratchesAndConsoles" value="false" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;big-react-lane&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.standard&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.standard&quot;: &quot;&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;pnpm&quot;,
+    &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;/Users/meng/Desktop/project/big-react/node_modules/prettier&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;settings.javascript.prettier&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/meng/Desktop/project/big-react/node_modules/typescript/lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="84f49246-e140-4f80-951f-df336e270314" name="Changes" comment="" />
+      <created>1715398946229</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1715398946229</updated>
+      <workItem from="1715398947975" duration="1504000" />
+      <workItem from="1715405535300" duration="5517000" />
+      <workItem from="1715414175314" duration="680000" />
+      <workItem from="1715650056654" duration="8000" />
+      <workItem from="1715652270857" duration="14882000" />
+      <workItem from="1715841066081" duration="501000" />
+      <workItem from="1715941774814" duration="126000" />
+      <workItem from="1715942165206" duration="889000" />
+      <workItem from="1716341270164" duration="589000" />
+      <workItem from="1716427712542" duration="133000" />
+      <workItem from="1716534320449" duration="1967000" />
+      <workItem from="1716536319420" duration="4002000" />
+      <workItem from="1716772914656" duration="628000" />
+      <workItem from="1716786958103" duration="5907000" />
+    </task>
+    <task id="LOCAL-00001" summary="feat: 学习">
+      <option name="closed" value="true" />
+      <created>1715399388751</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1715399388751</updated>
+    </task>
+    <task id="LOCAL-00002" summary="feat: 学习">
+      <option name="closed" value="true" />
+      <created>1715399400626</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1715399400626</updated>
+    </task>
+    <task id="LOCAL-00003" summary="feat: 学习">
+      <option name="closed" value="true" />
+      <created>1715942171855</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1715942171855</updated>
+    </task>
+    <task id="LOCAL-00004" summary="feat: 学习">
+      <option name="closed" value="true" />
+      <created>1715942467610</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1715942467611</updated>
+    </task>
+    <task id="LOCAL-00005" summary="feat: 学习">
+      <option name="closed" value="true" />
+      <created>1716535906066</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1716535906066</updated>
+    </task>
+    <task id="LOCAL-00006" summary="feat: idea">
+      <option name="closed" value="true" />
+      <created>1725501981192</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1725501981192</updated>
+    </task>
+    <task id="LOCAL-00007" summary="feat: idea">
+      <option name="closed" value="true" />
+      <created>1725501997790</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1725501997790</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="text">
+                    <value>
+                      <list>
+                        <option value="fragment" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat: 学习" />
+    <MESSAGE value="feat: save" />
+    <MESSAGE value="feat: idea" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: idea" />
+  </component>
+</project>
