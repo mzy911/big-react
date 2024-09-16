@@ -2,6 +2,12 @@
 /**/node_modules
 .history
 dist
-/.idea/jsLinters/eslint.xml
-/.idea/prettier.xml
-/.idea/codeStyles
+
+# WebStorm
+.idea/
+*.iml
+*.iws
+
+# OS specific files
+.DS_Store
+Thumbs.db
