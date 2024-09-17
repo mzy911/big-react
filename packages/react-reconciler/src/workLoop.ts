@@ -57,9 +57,9 @@ type RootExitStatus = number;
 
 // render 流程的结果状态
 const RootInProgress = 0; // 工作中的状态
-const RootInComplete = 1; // 并发中间状态
+const RootInComplete = 1; // 并发中断状态
 const RootCompleted = 2; // 完成状态
-const RootDidNotComplete = 3; // 未完成状态，不用进入commit阶段
+const RootDidNotComplete = 3; // 未完成状态，不用进入commit阶段（cpn 没有被 Suspense 包裹时）
 
 // wip 过程中根节点存在状态变化
 let workInProgressRootExitStatus: number = RootInProgress;
@@ -73,8 +73,8 @@ type SuspendedReason =
 
 // 组件挂起的四种状态
 const NotSuspended = 0;
-const SuspendedOnError = 1;
-const SuspendedOnData = 2;
+const SuspendedOnError = 1; // error 的挂起
+const SuspendedOnData = 2; // 请求数据的挂起
 const SuspendedOnDeprecatedThrowPromise = 4;
 
 // wip组件挂起状态
@@ -231,6 +231,8 @@ function performConcurrentWorkOnRoot(
         return null;
       }
       return performConcurrentWorkOnRoot.bind(null, root);
+
+    // 完成
     case RootCompleted:
       // 获取到带有 Flags 完成的 workInProgressFiber
       const finishedWork = root.current.alternate;
@@ -241,6 +243,8 @@ function performConcurrentWorkOnRoot(
       // 进入 commit 阶段
       commitRoot(root);
       break;
+
+    // 未完成
     case RootDidNotComplete:
       markRootSuspended(root, lane);
       wipRootRenderLane = NoLane;
@@ -315,12 +319,12 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
         workInProgressSuspendedReason !== NotSuspended &&
         workInProgress !== null
       ) {
+        // 重置挂起状态
         const thrownValue = workInProgressThrownValue;
-
         workInProgressSuspendedReason = NotSuspended;
         workInProgressThrownValue = null;
 
-        // 处理在循环（work loop）中遇到的异常情况
+        // 进入 unwind 的流程
         throwAndUnwindWorkLoop(root, workInProgress, thrownValue, lane);
       }
 
@@ -336,6 +340,7 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
         console.warn('break!');
       }
 
+      // WorkLoop 阶段：处理 render 过程中，抛出的错误
       handleThrow(root, e);
     }
   } while (true);
@@ -509,6 +514,7 @@ function completeUnitOfWork(fiber: FiberNode) {
   } while (node !== null);
 }
 
+// WorkLoop 阶段：处理 render 过程中，抛出的错误
 function handleThrow(root: FiberRootNode, thrownValue: any): void {
   /*
 		throw可能的情况
@@ -516,6 +522,7 @@ function handleThrow(root: FiberRootNode, thrownValue: any): void {
 			2. error (Error Boundary处理)
 	*/
   if (thrownValue === SuspenseException) {
+    // 处理 Suspense 相关的错误
     workInProgressSuspendedReason = SuspendedOnData;
     thrownValue = getSuspenseThenable();
   } else {
@@ -529,6 +536,8 @@ function handleThrow(root: FiberRootNode, thrownValue: any): void {
       ? SuspendedOnDeprecatedThrowPromise
       : SuspendedOnError;
   }
+
+  // 获取失败的值
   workInProgressThrownValue = thrownValue;
 }
 
@@ -539,30 +548,32 @@ function throwAndUnwindWorkLoop(
   thrownValue: any,
   lane: Lane
 ) {
-  // unwind前的重置hook，避免 hook0 use hook1 时 use造成中断，再恢复时前后hook对应不上
-
-  // 重置状态
-  // currentlyRenderingFiber = null;
-  // currentHook = null;
-  // workInProgressHook = null;
+  // 1、重置状态（全局变量）
   resetHooksOnUnwind(unitOfWork);
 
-  // 抛出异常
+  // 2、抛出异常
   throwException(root, thrownValue, lane);
+
+  // 3、unwind 阶段，向上
   unwindUnitOfWork(unitOfWork);
 }
 
 function unwindUnitOfWork(unitOfWork: FiberNode) {
   let incompleteWork: FiberNode | null = unitOfWork;
+
   do {
+    // 查找最近的 Suspense
     const next = unwindWork(incompleteWork);
 
+    // 找到了
     if (next !== null) {
       next.flags &= HostEffectMask;
+      // 赋值给全局的 workInProgress
       workInProgress = next;
       return;
     }
 
+    // 继续向上查找
     const returnFiber = incompleteWork.return as FiberNode;
     if (returnFiber !== null) {
       returnFiber.deletions = null;
@@ -571,7 +582,8 @@ function unwindUnitOfWork(unitOfWork: FiberNode) {
     // workInProgress = incompleteWork;
   } while (incompleteWork !== null);
 
-  // 没有 边界 中止unwind流程，一直到root
+  // 1、没有边界 中止 unwind 流程
+  // 2、比如：使用了 use 但是没有使用 Suspense 包裹
   workInProgress = null;
   workInProgressRootExitStatus = RootDidNotComplete;
 }

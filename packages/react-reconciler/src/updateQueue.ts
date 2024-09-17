@@ -66,8 +66,6 @@ export const enqueueUpdate = <State>(
     pending.next = update;
   }
 
-  // 1、udpate 为环状链表
-  // 2、updateQueue.shared.pending 指向最后一个 update ，而 update.next 会指向第一个 update
   updateQueue.shared.pending = update;
 
   fiber.lanes = mergeLanes(fiber.lanes, lane);
@@ -77,6 +75,7 @@ export const enqueueUpdate = <State>(
   }
 };
 
+// 返回 action 中的值
 export function basicStateReducer<State>(
   state: State,
   action: Action<State>
@@ -93,7 +92,7 @@ export function basicStateReducer<State>(
 // "消费"(执行) Update 的方法
 export const processUpdateQueue = <State>(
   baseState: State, // 初始状态
-  pendingUpdate: Update<State> | null, // 要执行的 update 对象
+  pendingUpdate: Update<State> | null, // 要执行的 update 链表
   renderLane: Lane,
   onSkipUpdate?: <State>(update: Update<State>) => void
 ): {
@@ -109,7 +108,7 @@ export const processUpdateQueue = <State>(
 
   // 如果此处有三个任务：pending c a b c
   if (pendingUpdate !== null) {
-    // 第一个update：由于 update 是环状链表，当前为最后一个 update
+    // 获取到链表中的第一个 update 对象
     const first = pendingUpdate.next;
     let pending = pendingUpdate.next as Update<any>;
 

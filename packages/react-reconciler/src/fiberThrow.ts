@@ -10,10 +10,10 @@ function attachPingListener(
   wakeable: Wakeable<any>,
   lane: Lane
 ) {
+  // 利用缓存，避免重复处理
   let pingCache = root.pingCache;
   let threadIDs: Set<Lane> | undefined;
 
-  // WeakMap{ wakeable: Set[lane1, lane2, ...]}
   if (pingCache === null) {
     threadIDs = new Set<Lane>();
     pingCache = root.pingCache = new WeakMap<Wakeable<any>, Set<Lane>>();
@@ -25,6 +25,7 @@ function attachPingListener(
       pingCache.set(wakeable, threadIDs);
     }
   }
+
   if (!threadIDs.has(lane)) {
     // 第一次进入
     threadIDs.add(lane);
@@ -36,6 +37,8 @@ function attachPingListener(
       }
       markRootUpdated(root, lane);
       markRootPinged(root, lane);
+
+      // 触发新的更新
       ensureRootIsScheduled(root);
     }
     wakeable.then(ping, ping);
@@ -43,6 +46,7 @@ function attachPingListener(
 }
 
 export function throwException(root: FiberRootNode, value: any, lane: Lane) {
+  // 处理 thenable 的错误
   if (
     value !== null &&
     typeof value === 'object' &&
@@ -54,6 +58,9 @@ export function throwException(root: FiberRootNode, value: any, lane: Lane) {
     if (suspenseBoundary) {
       suspenseBoundary.flags |= ShouldCapture;
     }
+
     attachPingListener(root, weakable, lane);
   }
+
+  // 处理 Error Boundary 的错误
 }

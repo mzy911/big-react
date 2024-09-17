@@ -14,14 +14,14 @@ function App() {
 
 // 嵌套Suspense
 // function App() {
-// 	return (
-// 		<Suspense fallback={<div>外层...</div>}>
-// 			<Cpn id={0} timeout={1000} />
-// 			<Suspense fallback={<div>内层...</div>}>
-// 				<Cpn id={1} timeout={3000} />
-// 			</Suspense>
-// 		</Suspense>
-// 	);
+//   return (
+//     <Suspense fallback={<div>外层...</div>}>
+//       <Cpn id={0} timeout={1000} />
+//       <Suspense fallback={<div>内层...</div>}>
+//         <Cpn id={1} timeout={3000} />
+//       </Suspense>
+//     </Suspense>
+//   );
 // }
 
 // 缓存快速失效

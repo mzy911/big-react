@@ -11,6 +11,7 @@ export const SuspenseException = new Error(
 
 let suspendedThenable: Thenable<any> | null = null;
 
+// 获取 thenable
 export function getSuspenseThenable(): Thenable<any> {
   if (suspendedThenable === null) {
     throw new Error('应该存在suspendedThenable，这是个bug');
@@ -20,24 +21,28 @@ export function getSuspenseThenable(): Thenable<any> {
   return thenable;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-function noop() {}
-
+// use：包装、处理 thenable 对象
 export function trackUsedThenable<T>(thenable: Thenable<T>) {
   switch (thenable.status) {
     // 需要自己定义
     case 'fulfilled':
       return thenable.value;
+
     // 需要自己定义
     case 'rejected':
       throw thenable.reason;
+
     default:
       if (typeof thenable.status === 'string') {
+        // tracked（此处什么都不干）
         thenable.then(noop, noop);
       } else {
         // untracked
         const pending = thenable as unknown as PendingThenable<T, void, any>;
+
+        // 先设置为 pending 状态
         pending.status = 'pending';
+
         pending.then(
           (val) => {
             if (pending.status === 'pending') {
@@ -59,5 +64,10 @@ export function trackUsedThenable<T>(thenable: Thenable<T>) {
       }
   }
   suspendedThenable = thenable;
+
+  // use 手动抛出一个错误，打断正常的 render 流程
   throw SuspenseException;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+function noop() {}

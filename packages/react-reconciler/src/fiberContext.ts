@@ -10,38 +10,44 @@ import {
 import { markWipReceivedUpdate } from './beginWork';
 import { ContextProvider } from './workTags';
 
-let lastContextDep: ContextItem<any> | null = null;
-
 export interface ContextItem<Value> {
   context: ReactContext<Value>;
   memoizedState: Value;
   next: ContextItem<Value> | null;
 }
 
+let lastContextDep: ContextItem<any> | null = null;
+
 // 保存上一次 Context 的值
 let prevContextValue: any = null;
-// 保存 Context 所有的值
+// 用栈保存所有 context 的值
 const prevContextValueStack: any[] = [];
 
+// push beginWork 阶段执行
 export function pushProvider<T>(context: ReactContext<T>, newValue: T) {
   prevContextValueStack.push(prevContextValue);
   prevContextValue = context._currentValue;
   context._currentValue = newValue;
 }
 
+// pop completeWork 阶段执行
 export function popProvider<T>(context: ReactContext<T>) {
   context._currentValue = prevContextValue;
   prevContextValue = prevContextValueStack.pop();
 }
 
+// 重置 context 状态
 export function prepareToReadContext(wip: FiberNode, renderLane: Lane) {
   lastContextDep = null;
 
+  // 存储 context 链表
   const deps = wip.dependencies;
+
   if (deps !== null) {
     const firstContext = deps.firstContext;
     if (firstContext !== null) {
       if (includeSomeLanes(deps.lanes, renderLane)) {
+        // 命中 bailout
         markWipReceivedUpdate();
       }
       deps.firstContext = null;
@@ -49,6 +55,8 @@ export function prepareToReadContext(wip: FiberNode, renderLane: Lane) {
   }
 }
 
+// 1、读取 context 的 value
+// 2、构建 fiber context 链表
 export function readContext<T>(
   consumer: FiberNode | null,
   context: ReactContext<T>
@@ -78,6 +86,7 @@ export function readContext<T>(
   return value;
 }
 
+// update 阶段调用
 export function propagateContextChange<T>(
   wip: FiberNode,
   context: ReactContext<T>,
@@ -96,14 +105,17 @@ export function propagateContextChange<T>(
 
       let contextItem = deps.firstContext;
       while (contextItem !== null) {
+        // 在 deps 中找到当前的 context
         if (contextItem.context === context) {
           // 找到了
           fiber.lanes = mergeLanes(fiber.lanes, renderLane);
+
           const alternate = fiber.alternate;
           if (alternate !== null) {
             alternate.lanes = mergeLanes(alternate.lanes, renderLane);
           }
-          // 往上
+
+          // 向上
           scheduleContextWorkOnParentPath(fiber.return, wip, renderLane);
           deps.lanes = mergeLanes(deps.lanes, renderLane);
           break;
@@ -116,6 +128,7 @@ export function propagateContextChange<T>(
       nextFiber = fiber.child;
     }
 
+    // 向下
     if (nextFiber !== null) {
       nextFiber.return = fiber;
     } else {
@@ -139,6 +152,7 @@ export function propagateContextChange<T>(
   }
 }
 
+// 从当前的 context 向上标记 childLanes 中 renderLane
 function scheduleContextWorkOnParentPath(
   from: FiberNode | null,
   to: FiberNode,

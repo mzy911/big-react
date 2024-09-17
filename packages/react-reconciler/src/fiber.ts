@@ -35,8 +35,8 @@ export class FiberNode {
   stateNode: any; // 表示当前FiberNode对应的element组件实例
   /**
    * 用于标识该节点所代表的React元素或组件的类型
-   * 1、当FiberNode对应于一个React组件（无论是函数组件还是类组件）时，type字段将存储对该组件构造函数或函数组件本身的引用
-   * 2、如果FiberNode表示一个原生的DOM元素（如、等），type字段将包含一个字符串，该字符串对应于该DOM元素的标签名。例如，对于一个``元素，type值将是 "div"。
+   * 1、当 FiberNode 对应于一个 React 组件时，type 字段将存储对该组件构造函数或函数组件 "本身的引用"
+   * 2、如果 FiberNode 表示一个原生的 DOM 元素（如、等），type 字段将包含一个字符串，该字符串对应于该DOM元素的标签名。例如，对于一个``元素，type值将是 "div"。
    */
   type: any;
   key: Key;

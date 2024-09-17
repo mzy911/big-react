@@ -97,25 +97,31 @@ export const completeWork = (wip: FiberNode): void => {
       popProvider(context);
       bubbleProperties(wip);
       return null;
+
+    // 在 Suspense 阶段处理 Offscreen 显示状态
     case SuspenseComponent:
+      // pop Suspense
       popSuspenseHandler();
 
       const offscreenFiber = wip.child as FiberNode;
       const isHidden = offscreenFiber.pendingProps.mode === 'hidden';
       const currentOffscreenFiber = offscreenFiber.alternate;
+
       if (currentOffscreenFiber !== null) {
+        // update 阶段
         const wasHidden = currentOffscreenFiber.pendingProps.mode === 'hidden';
 
+        // 可见性变化，标记 Visibility
         if (isHidden !== wasHidden) {
-          // 可见性变化
           offscreenFiber.flags |= Visibility;
           bubbleProperties(offscreenFiber);
         }
       } else if (isHidden) {
-        // mount时hidden
+        // mount 阶段，直接标记 Visibility
         offscreenFiber.flags |= Visibility;
         bubbleProperties(offscreenFiber);
       }
+
       bubbleProperties(wip);
       return null;
     default:

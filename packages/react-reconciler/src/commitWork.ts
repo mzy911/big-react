@@ -105,23 +105,29 @@ const commitMutationEffectsOnFiber = (
     finishedWork.flags &= ~PassiveEffect;
   }
 
+  // Ref 的副作用
   if ((flags & Ref) !== NoFlags && tag === HostComponent) {
     safelyDetachRef(finishedWork);
   }
+
+  // Suspense 的副作用
   if ((flags & Visibility) !== NoFlags && tag === OffscreenComponent) {
     const isHidden = finishedWork.pendingProps.mode === 'hidden';
-    hideOrUnhideAllChildren(finishedWork, isHidden);
+
+    // 处理 Visibility 找到所有子树顶层 host 节点隐藏或显示
+    hideOrShowAllChildren(finishedWork, isHidden);
     finishedWork.flags &= ~Visibility;
   }
 };
 
-// 寻找根host节点，考虑到Fragment，可能存在多个
+// 找到 host 树的顶层节点，考虑到 Fragment 可能存在多个
 function findHostSubtreeRoot(
   finishedWork: FiberNode,
   callback: (hostSubtreeRoot: FiberNode) => void
 ) {
   let hostSubtreeRoot = null;
   let node = finishedWork;
+
   while (true) {
     if (node.tag === HostComponent) {
       if (hostSubtreeRoot === null) {
@@ -172,7 +178,9 @@ function findHostSubtreeRoot(
   }
 }
 
-function hideOrUnhideAllChildren(finishedWork: FiberNode, isHidden: boolean) {
+// 处理 Visibility 找到所有子树顶层 host 节点隐藏或显示
+function hideOrShowAllChildren(finishedWork: FiberNode, isHidden: boolean) {
+  // 找到 host 树的顶层节点
   findHostSubtreeRoot(finishedWork, (hostRoot) => {
     const instance = hostRoot.stateNode;
     if (hostRoot.tag === HostComponent) {

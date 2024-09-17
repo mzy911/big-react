@@ -8,6 +8,7 @@ export function unwindWork(wip: FiberNode) {
   const flags = wip.flags;
   switch (wip.tag) {
     case SuspenseComponent:
+      // pop Suspense
       popSuspenseHandler();
       if (
         (flags & ShouldCapture) !== NoFlags &&

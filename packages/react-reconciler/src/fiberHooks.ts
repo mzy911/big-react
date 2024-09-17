@@ -38,6 +38,7 @@ let renderLane: Lane = NoLane;
 
 const { currentDispatcher, currentBatchConfig } = internals;
 
+// mount 和 update 阶段都执行次函数
 function readContext<Value>(context: ReactContext<Value>): Value {
   const consumer = currentlyRenderingFiber as FiberNode;
   return readContextOrigin(consumer, context);
@@ -484,9 +485,11 @@ function mountWorkInProgressHook(): Hook {
 function use<T>(usable: Usable<T>): T {
   if (usable !== null && typeof usable === 'object') {
     if (typeof (usable as Thenable<T>).then === 'function') {
+      // promise 对象包装成 Thenable
       const thenable = usable as Thenable<T>;
       return trackUsedThenable(thenable);
     } else if ((usable as ReactContext<T>).$$typeof === REACT_CONTEXT_TYPE) {
+      // REACT_CONTEXT_TYPE 类型
       const context = usable as ReactContext<T>;
       return readContext(context);
     }
@@ -494,6 +497,7 @@ function use<T>(usable: Usable<T>): T {
   throw new Error('不支持的use参数 ' + usable);
 }
 
+// unWind 阶段，重置状态
 export function resetHooksOnUnwind(wip: FiberNode) {
   currentlyRenderingFiber = null;
   currentHook = null;

@@ -84,16 +84,18 @@ export function schedulerPriorityToLane(schedulerPriority: number): Lane {
   return NoLane;
 }
 
+// 标记 lane 被 ping 了，在 ping 方法中被标记
 export function markRootPinged(root: FiberRootNode, pingedLane: Lane) {
   root.pingedLanes |= root.suspendedLanes & pingedLane;
 }
 
+// 标记 lane 被挂起了，在 RootDidNotComplete 时被标记
 export function markRootSuspended(root: FiberRootNode, suspendedLane: Lane) {
   root.suspendedLanes |= suspendedLane;
   root.pingedLanes &= ~suspendedLane;
 }
 
-// 获取下一个有效的、优先级最高的 lane
+// 获取下一个有效的、优先级最高的 lane（排除被挂起的lane）
 export function getNextLane(root: FiberRootNode): Lane {
   const pendingLanes = root.pendingLanes;
 
