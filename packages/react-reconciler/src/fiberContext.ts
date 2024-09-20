@@ -47,7 +47,7 @@ export function prepareToReadContext(wip: FiberNode, renderLane: Lane) {
     const firstContext = deps.firstContext;
     if (firstContext !== null) {
       if (includeSomeLanes(deps.lanes, renderLane)) {
-        // 命中 bailout
+        // 没有命中 bailout 优化策略
         markWipReceivedUpdate();
       }
       deps.firstContext = null;
@@ -55,6 +55,7 @@ export function prepareToReadContext(wip: FiberNode, renderLane: Lane) {
   }
 }
 
+// 执行 use 方法时调用
 // 1、读取 context 的 value
 // 2、构建 fiber context 链表
 export function readContext<T>(
@@ -87,6 +88,8 @@ export function readContext<T>(
 }
 
 // update 阶段调用
+// 1、向下查找使用到 context.provider 的 cmp
+// 2、找到之后，向上标记 deps.lanes
 export function propagateContextChange<T>(
   wip: FiberNode,
   context: ReactContext<T>,
@@ -97,6 +100,7 @@ export function propagateContextChange<T>(
     fiber.return = wip;
   }
 
+  // 向下查找
   while (fiber !== null) {
     let nextFiber = null;
     const deps = fiber.dependencies;
@@ -115,7 +119,7 @@ export function propagateContextChange<T>(
             alternate.lanes = mergeLanes(alternate.lanes, renderLane);
           }
 
-          // 向上
+          // 向上标记
           scheduleContextWorkOnParentPath(fiber.return, wip, renderLane);
           deps.lanes = mergeLanes(deps.lanes, renderLane);
           break;
@@ -148,6 +152,7 @@ export function propagateContextChange<T>(
         nextFiber = nextFiber.return;
       }
     }
+
     fiber = nextFiber;
   }
 }

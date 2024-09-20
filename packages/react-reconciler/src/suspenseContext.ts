@@ -1,8 +1,9 @@
 import { FiberNode } from './fiber';
 
-// 为了找到距离 Com 最近的 Suspense
+// 存储 Suspense 的栈
 const suspenseHandlerStack: FiberNode[] = [];
 
+// 获取最近插入的 Suspense
 export function getSuspenseHandler() {
   return suspenseHandlerStack[suspenseHandlerStack.length - 1];
 }

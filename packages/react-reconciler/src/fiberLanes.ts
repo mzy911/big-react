@@ -33,10 +33,9 @@ export function requestUpdateLane() {
     return TransitionLane;
   }
 
-  // 从上下文环境中获取Scheduler优先级
+  // 从上下文环境中获取 Scheduler 优先级
   const currentSchedulerPriority = unstable_getCurrentPriorityLevel();
-  const lane = schedulerPriorityToLane(currentSchedulerPriority);
-  return lane;
+  return schedulerPriorityToLane(currentSchedulerPriority);
 }
 
 // 获取优先级最高的 lane
@@ -44,18 +43,19 @@ export function getHighestPriorityLane(lanes: Lanes): Lane {
   return lanes & -lanes;
 }
 
+// lanes 中是否包含当前 lane
 export function isSubsetOfLanes(set: Lanes, subset: Lane) {
   return (set & subset) === subset;
 }
 
-// pendingLanes 中移除，已经消费过的 lane
+// 移除已经消费过的 lane
 export function markRootFinished(root: FiberRootNode, lane: Lane) {
   root.pendingLanes &= ~lane;
-
   root.suspendedLanes = NoLanes;
   root.pingedLanes = NoLanes;
 }
 
+// lanes 转 SchedulerPriority
 export function lanesToSchedulerPriority(lanes: Lanes) {
   const lane = getHighestPriorityLane(lanes);
 
@@ -71,6 +71,7 @@ export function lanesToSchedulerPriority(lanes: Lanes) {
   return unstable_IdlePriority;
 }
 
+// SchedulerPriority 转 lanes
 export function schedulerPriorityToLane(schedulerPriority: number): Lane {
   if (schedulerPriority === unstable_ImmediatePriority) {
     return SyncLane;

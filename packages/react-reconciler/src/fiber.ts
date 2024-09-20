@@ -25,7 +25,7 @@ import { ContextItem } from './fiberContext';
 
 interface FiberDependencies<Value> {
   firstContext: ContextItem<Value> | null;
-  lanes: Lanes;
+  lanes: Lanes; // 函数组件内 useContext 的 lanes
 }
 
 export class FiberNode {
@@ -58,7 +58,7 @@ export class FiberNode {
   flags: Flags;
   subtreeFlags: Flags;
   deletions: FiberNode[] | null;
-  dependencies: FiberDependencies<any> | null;
+  dependencies: FiberDependencies<any> | null; // 函数组件内多个 useContext 的链表
 
   // 优先级
   lanes: Lanes; // 用于存储当前

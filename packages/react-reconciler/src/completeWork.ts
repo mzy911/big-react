@@ -22,11 +22,12 @@ import { popProvider } from './fiberContext';
 import { popSuspenseHandler } from './suspenseContext';
 import { mergeLanes, NoLanes } from './fiberLanes';
 
-// 标记更新
+// 标记 update
 function markUpdate(fiber: FiberNode) {
   fiber.flags |= Update;
 }
 
+// 标记 ref
 function markRef(fiber: FiberNode) {
   fiber.flags |= Ref;
 }
@@ -38,53 +39,57 @@ function markRef(fiber: FiberNode) {
  */
 export const completeWork = (wip: FiberNode): void => {
   // 递归中的归
-
   const newProps = wip.pendingProps;
   const current = wip.alternate;
 
   switch (wip.tag) {
     case HostComponent:
       if (current !== null && wip.stateNode) {
-        // update
-        // 1. props是否变化 {onClick: xx} {onClick: xxx}
-        // 2. 变了 Update flag
-        // className style
+        // update 阶段
+        // props 变化，标记 update
         markUpdate(wip);
-        // 标记Ref
+
+        // ref 变化，标记 Ref
         if (current.ref !== wip.ref) {
           markRef(wip);
         }
       } else {
-        // mount
-        // 1. 构建DOM
+        // mount 阶段
+        // 1. 构建 DOM
         const instance = createInstance(wip.type, newProps);
-        // 2. 将DOM插入到DOM树中
+        // 2. 将所有的子树节点挂载到 instance 上
         appendAllChildren(instance, wip);
 
         wip.stateNode = instance;
-        // 标记Ref
+
+        // 标记 Ref
         if (wip.ref !== null) {
           markRef(wip);
         }
       }
+
       bubbleProperties(wip);
       return null;
+
     case HostText:
       if (current !== null && wip.stateNode) {
-        // update
+        // update 阶段
         const oldText = current.memoizedProps?.content;
         const newText = newProps.content;
+
+        // 标记 update
         if (oldText !== newText) {
           markUpdate(wip);
         }
       } else {
-        // mount
-        // 1. 构建DOM
+        // mount 阶段
+        // 构建DOM
         const instance = createTextInstance(newProps.content);
         wip.stateNode = instance;
       }
       bubbleProperties(wip);
       return null;
+
     case HostRoot:
     case FunctionComponent:
     case Fragment:
@@ -92,13 +97,17 @@ export const completeWork = (wip: FiberNode): void => {
     case MemoComponent:
       bubbleProperties(wip);
       return null;
+
     case ContextProvider:
       const context = wip.type._context;
+
+      // pop context
       popProvider(context);
+
       bubbleProperties(wip);
       return null;
 
-    // 在 Suspense 阶段处理 Offscreen 显示状态
+    // 在指定的情况下标记 Visibility
     case SuspenseComponent:
       // pop Suspense
       popSuspenseHandler();
@@ -132,6 +141,7 @@ export const completeWork = (wip: FiberNode): void => {
   }
 };
 
+// 将子节点插入到新创建的父节点中
 function appendAllChildren(parent: Container | Instance, wip: FiberNode) {
   let node = wip.child;
 
@@ -164,12 +174,12 @@ function appendAllChildren(parent: Container | Instance, wip: FiberNode) {
   }
 }
 
-// 利用 completeWork 向上遍历的过程，将 FiberNode 的 Flags 冒泡到父 FiberNode
+// 利用 completeWork 向上遍历的过程，收集子节点的 subtreeFlags、childLanes
 function bubbleProperties(wip: FiberNode) {
   // 子树上的 Flags
   let subtreeFlags = NoFlags;
-  let child = wip.child;
   let newChildLanes = NoLanes;
+  let child = wip.child;
 
   // 利用循环向上遍历
   while (child !== null) {

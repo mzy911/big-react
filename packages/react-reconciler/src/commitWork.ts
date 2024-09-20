@@ -38,11 +38,26 @@ import {
 
 let nextEffect: FiberNode | null = null;
 
-export const commitEffects = (
+// commit 的 mutation 阶段
+export const commitMutationEffects = commitEffects(
+  'mutation',
+  MutationMask | PassiveMask,
+  commitMutationEffectsOnFiber
+);
+
+// commit 的 layout 阶段
+export const commitLayoutEffects = commitEffects(
+  'layout',
+  LayoutMask,
+  commitLayoutEffectsOnFiber
+);
+
+// 执行 mutation、layout 阶段存在的 Effects
+export function commitEffects(
   phrase: 'mutation' | 'layout',
   mask: Flags,
   callback: (fiber: FiberNode, root: FiberRootNode) => void
-) => {
+) {
   return (finishedWork: FiberNode, root: FiberRootNode) => {
     nextEffect = finishedWork;
     while (nextEffect !== null) {
@@ -66,13 +81,13 @@ export const commitEffects = (
       }
     }
   };
-};
+}
 
-// 找到存在 Effect 节点的元素，执行对应操作
-const commitMutationEffectsOnFiber = (
+// Mutation 阶段
+function commitMutationEffectsOnFiber(
   finishedWork: FiberNode,
   root: FiberRootNode
-) => {
+) {
   const { flags, tag } = finishedWork;
 
   // 插入节点
@@ -118,7 +133,21 @@ const commitMutationEffectsOnFiber = (
     hideOrShowAllChildren(finishedWork, isHidden);
     finishedWork.flags &= ~Visibility;
   }
-};
+}
+
+// Layout 阶段
+function commitLayoutEffectsOnFiber(
+  finishedWork: FiberNode,
+  root: FiberRootNode
+) {
+  const { flags, tag } = finishedWork;
+
+  if ((flags & Ref) !== NoFlags && tag === HostComponent) {
+    // 绑定新的ref
+    safelyAttachRef(finishedWork);
+    finishedWork.flags &= ~Ref;
+  }
+}
 
 // 找到 host 树的顶层节点，考虑到 Fragment 可能存在多个
 function findHostSubtreeRoot(
@@ -204,19 +233,6 @@ function safelyDetachRef(current: FiberNode) {
   }
 }
 
-const commitLayoutEffectsOnFiber = (
-  finishedWork: FiberNode,
-  root: FiberRootNode
-) => {
-  const { flags, tag } = finishedWork;
-
-  if ((flags & Ref) !== NoFlags && tag === HostComponent) {
-    // 绑定新的ref
-    safelyAttachRef(finishedWork);
-    finishedWork.flags &= ~Ref;
-  }
-};
-
 function safelyAttachRef(fiber: FiberNode) {
   const ref = fiber.ref;
   if (ref !== null) {
@@ -225,68 +241,6 @@ function safelyAttachRef(fiber: FiberNode) {
       ref(instance);
     } else {
       ref.current = instance;
-    }
-  }
-}
-
-// commit 的 mutation 阶段
-export const commitMutationEffects = commitEffects(
-  'mutation',
-  MutationMask | PassiveMask,
-  commitMutationEffectsOnFiber
-);
-
-// commit 的 layout 阶段
-export const commitLayoutEffects = commitEffects(
-  'layout',
-  LayoutMask,
-  commitLayoutEffectsOnFiber
-);
-
-/**
- * 难点在于目标fiber的hostSibling可能并不是他的同级sibling
- * 比如： <A/><B/> 其中：function B() {return <div/>} 所以A的hostSibling实际是B的child
- * 实际情况层级可能更深
- * 同时：一个fiber被标记Placement，那他就是不稳定的（他对应的DOM在本次commit阶段会移动），也不能作为hostSibling
- */
-function gethostSibling(fiber: FiberNode) {
-  let node: FiberNode = fiber;
-  findSibling: while (true) {
-    while (node.sibling === null) {
-      // 如果当前节点没有sibling，则找他父级sibling
-      const parent = node.return;
-      if (
-        parent === null ||
-        parent.tag === HostComponent ||
-        parent.tag === HostRoot
-      ) {
-        // 没找到
-        return null;
-      }
-      node = parent;
-    }
-    node.sibling.return = node.return;
-    // 向同级sibling寻找
-    node = node.sibling;
-
-    while (node.tag !== HostText && node.tag !== HostComponent) {
-      // 找到一个非Host fiber，向下找，直到找到第一个Host子孙
-      if ((node.flags & Placement) !== NoFlags) {
-        // 这个fiber不稳定，不能用
-        continue findSibling;
-      }
-      if (node.child === null) {
-        continue findSibling;
-      } else {
-        node.child.return = node;
-        node = node.child;
-      }
-    }
-
-    // 找到最有可能的fiber
-    if ((node.flags & Placement) === NoFlags) {
-      // 这是稳定的fiber，就他了
-      return node.stateNode;
     }
   }
 }

@@ -400,6 +400,7 @@ function updateFragment(
 export const reconcileChildFibers = ChildReconciler(true);
 export const mountChildFibers = ChildReconciler(false);
 
+// clone 所有的子节点
 export function cloneChildFibers(wip: FiberNode) {
   // child  sibling
   if (wip.child === null) {
