@@ -85,12 +85,12 @@ export function schedulerPriorityToLane(schedulerPriority: number): Lane {
   return NoLane;
 }
 
-// 标记 lane 被 ping 了，在 ping 方法中被标记
+// ping 时 root 上标记 pingedLanes
 export function markRootPinged(root: FiberRootNode, pingedLane: Lane) {
   root.pingedLanes |= root.suspendedLanes & pingedLane;
 }
 
-// 标记 lane 被挂起了，在 RootDidNotComplete 时被标记
+// RootDidNotComplete：使用了 use 但是没有使用 Suspense 包裹
 export function markRootSuspended(root: FiberRootNode, suspendedLane: Lane) {
   root.suspendedLanes |= suspendedLane;
   root.pingedLanes &= ~suspendedLane;

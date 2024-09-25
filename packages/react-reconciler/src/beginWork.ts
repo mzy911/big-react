@@ -263,7 +263,7 @@ function updateSuspenseComponent(workInProgress: FiberNode) {
 
   // 是否展示 FallBack
   let showFallback = false;
-  // 是否刮挂起
+  // 是否刮挂起 (unwind 阶段标记 DidCapture)
   const didSuspend = (workInProgress.flags & DidCapture) !== NoFlags;
 
   if (didSuspend) {

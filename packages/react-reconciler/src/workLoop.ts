@@ -175,7 +175,7 @@ export function ensureRootIsScheduled(root: FiberRootNode) {
   root.callbackPriority = curPriority;
 }
 
-// 调度阶段，在 fiberRoot 上标记(追加)当前的 lane
+// ping 的时候 root 上标记 pendingLanes
 export function markRootUpdated(root: FiberRootNode, lane: Lane) {
   root.pendingLanes = mergeLanes(root.pendingLanes, lane);
 }
@@ -244,7 +244,7 @@ function performConcurrentWorkOnRoot(
       commitRoot(root);
       break;
 
-    // 未完成
+    // 未完成：使用了 use 但是没有使用 Suspense 包裹
     case RootDidNotComplete:
       markRootSuspended(root, lane);
       wipRootRenderLane = NoLane;
@@ -283,6 +283,8 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
       wipRootRenderLane = NoLane;
       commitRoot(root);
       break;
+
+    // 未完成：使用了 use 但是没有使用 Suspense 包裹
     case RootDidNotComplete:
       wipRootRenderLane = NoLane;
       markRootSuspended(root, nextLane);
@@ -324,7 +326,7 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
         workInProgressSuspendedReason = NotSuspended;
         workInProgressThrownValue = null;
 
-        // 进入 unwind 的流程
+        // 进入 unwind 的流程，最终找到最近的 Suspence 开始新一轮的渲染
         throwAndUnwindWorkLoop(root, workInProgress, thrownValue, lane);
       }
 
@@ -386,6 +388,7 @@ function commitRoot(root: FiberRootNode) {
   root.finishedWork = null;
   root.finishedLane = NoLane;
 
+  // commit 阶段，移除、重置相关联的 lanes
   markRootFinished(root, lane);
 
   if (
@@ -551,10 +554,13 @@ function throwAndUnwindWorkLoop(
   // 1、重置状态（全局变量）
   resetHooksOnUnwind(unitOfWork);
 
-  // 2、抛出异常
+  // 2、处理异常（thenable、Error Boundary）
+  // 2.1、标记 ShouldCapture
+  // 2.2、收集 root.pingCache = WeakMap<Wakeable, Set<Lane>>
+  // 2.3、等待 use 的 thenable 执行完进入 ping 阶段，开始新的 render 阶段
   throwException(root, thrownValue, lane);
 
-  // 3、unwind 阶段，向上
+  // 3、unwind 阶段，向上找到最新的 Suspense 节点 重新 render
   unwindUnitOfWork(unitOfWork);
 }
 

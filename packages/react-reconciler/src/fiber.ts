@@ -111,8 +111,8 @@ export class FiberRootNode {
   current: FiberNode; // 指向 hostRootFiber
   finishedWork: FiberNode | null; // 指向更新完成之后的 hostRootFiber
   pendingLanes: Lanes; // 未被消费的 lane 集合
-  suspendedLanes: Lanes; // 本次更新消费的 lane
-  pingedLanes: Lanes;
+  suspendedLanes: Lanes; // 挂起的 lane
+  pingedLanes: Lanes; // ping 时的 lane
   finishedLane: Lane; // 本次更新消费的 lane
   pendingPassiveEffects: PendingPassiveEffects; // 收集依赖的回调，卸载和更新时执行
 

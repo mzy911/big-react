@@ -485,8 +485,10 @@ function mountWorkInProgressHook(): Hook {
 function use<T>(usable: Usable<T>): T {
   if (usable !== null && typeof usable === 'object') {
     if (typeof (usable as Thenable<T>).then === 'function') {
-      // promise 对象包装成 Thenable
       const thenable = usable as Thenable<T>;
+
+      // 1、包装、处理 thenable 对象
+      // 2、手动抛出一个错误，打断正常的 render 流程
       return trackUsedThenable(thenable);
     } else if ((usable as ReactContext<T>).$$typeof === REACT_CONTEXT_TYPE) {
       // REACT_CONTEXT_TYPE 类型
