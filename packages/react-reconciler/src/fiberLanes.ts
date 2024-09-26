@@ -100,6 +100,7 @@ export function markRootSuspended(root: FiberRootNode, suspendedLane: Lane) {
 export function getNextLane(root: FiberRootNode): Lane {
   const pendingLanes = root.pendingLanes;
 
+  // root 上无 lanes 直接返回 NoLane
   if (pendingLanes === NoLanes) {
     return NoLane;
   }

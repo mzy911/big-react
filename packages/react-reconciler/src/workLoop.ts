@@ -53,18 +53,16 @@ let wipRootRenderLane: Lane = NoLane;
 // 是否正在调度执行 PassiveEffect （当前 fiber 上本次更新，需要触发 useEffect 的情况）
 let rootDoesHasPassiveEffects = false;
 
-type RootExitStatus = number;
-
 // render 流程的结果状态
 const RootInProgress = 0; // 工作中的状态
 const RootInComplete = 1; // 并发中断状态
 const RootCompleted = 2; // 完成状态
 const RootDidNotComplete = 3; // 未完成状态，不用进入commit阶段（cpn 没有被 Suspense 包裹时）
 
-// wip 过程中根节点存在状态变化
+// wip 过程中，是否进入了未完成状态
 let workInProgressRootExitStatus: number = RootInProgress;
 
-// Suspense：挂起
+// Suspense：挂起原因
 type SuspendedReason =
   | typeof NotSuspended
   | typeof SuspendedOnError
@@ -75,14 +73,14 @@ type SuspendedReason =
 const NotSuspended = 0;
 const SuspendedOnError = 1; // error 的挂起
 const SuspendedOnData = 2; // 请求数据的挂起
-const SuspendedOnDeprecatedThrowPromise = 4;
+const SuspendedOnDeprecatedThrowPromise = 4; // Promise.then 的挂起
 
-// wip组件挂起状态
+// 组件挂起状态
 let workInProgressSuspendedReason: SuspendedReason = NotSuspended;
-// 接收渲染过程中失败值
+// 渲染过程中失败值
 let workInProgressThrownValue: any = null;
 
-// 开始 render 前要初始化状态：创建 wipProgress、重置状态
+// 每次进入 render 先重置全局状态
 function prepareFreshStack(root: FiberRootNode, lane: Lane) {
   root.finishedLane = NoLane;
   root.finishedWork = null;
@@ -93,17 +91,20 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
   // 赋值当前的 lane
   wipRootRenderLane = lane;
 
+  // '未完成'状态
   workInProgressRootExitStatus = RootInProgress;
+  // 挂起状态
   workInProgressSuspendedReason = NotSuspended;
+  // 渲染过程中失败值
   workInProgressThrownValue = null;
 }
 
 // 调度任务的入口函数
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
-  // 从当前节点找到根节点
+  // 从当前节点找到根节点，途径的 father 的 fiber 上标记 childLanes
   const root = markUpdateLaneFromFiberToRoot(fiber, lane);
 
-  // 在 root 上标记当前的 lane
+  // 在 root 的 pendingLanes 上标记当前的 lane
   markRootUpdated(root, lane);
 
   // 进入调度过程
@@ -184,8 +185,11 @@ export function markRootUpdated(root: FiberRootNode, lane: Lane) {
 export function markUpdateLaneFromFiberToRoot(fiber: FiberNode, lane: Lane) {
   let node = fiber;
   let parent = node.return;
+
   while (parent !== null) {
     parent.childLanes = mergeLanes(parent.childLanes, lane);
+
+    // 存在 current 需要合并 childLanes
     const alternate = parent.alternate;
     if (alternate !== null) {
       alternate.childLanes = mergeLanes(alternate.childLanes, lane);
@@ -194,6 +198,8 @@ export function markUpdateLaneFromFiberToRoot(fiber: FiberNode, lane: Lane) {
     node = parent;
     parent = node.return;
   }
+
+  // 找到根节点
   if (node.tag === HostRoot) {
     return node.stateNode;
   }

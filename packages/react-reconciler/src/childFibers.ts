@@ -411,6 +411,7 @@ export function cloneChildFibers(wip: FiberNode) {
   wip.child = newChild;
   newChild.return = wip;
 
+  // 遍历剩余的兄弟节点
   while (currentChild.sibling !== null) {
     currentChild = currentChild.sibling;
     newChild = newChild.sibling = createWorkInProgress(

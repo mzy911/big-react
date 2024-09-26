@@ -67,6 +67,7 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
     if (oldProps !== newProps || current.type !== wip.type) {
       didReceiveUpdate = true;
     } else {
+      // TODO: current.lanes 和 renderLane 为什么可以判断 state、context 变化
       // 四要素：state context
       const hasScheduledStateOrContext = checkScheduledUpdateOrContext(
         current,
@@ -79,7 +80,7 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
         didReceiveUpdate = false;
 
         switch (wip.tag) {
-          // 处理 <Context.provider>
+          // 处理 ContextProvider 节点的情况
           case ContextProvider:
             const newValue = wip.memoizedProps.value;
             const context = wip.type._context;
@@ -91,7 +92,7 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
           // TODO Suspense
         }
 
-        // 进入 bailout 优化策略
+        // 进入 bailout 优化策略，目的返回复用的 fiber
         return bailoutOnAlreadyFinishedWork(wip, renderLane);
       }
     }
@@ -364,7 +365,7 @@ function markRef(current: FiberNode | null, workInProgress: FiberNode) {
   }
 }
 
-// 进入 bailout 优化策略
+// 进入 bailout 优化策略，返回复用的子 fiber
 function bailoutOnAlreadyFinishedWork(wip: FiberNode, renderLane: Lane) {
   // childLanes 中不存在 renderLane 优先级，说明子树不用更新
   if (!includeSomeLanes(wip.childLanes, renderLane)) {

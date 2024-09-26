@@ -23,14 +23,18 @@ let prevContextValue: any = null;
 // 用栈保存所有 context 的值
 const prevContextValueStack: any[] = [];
 
-// push beginWork 阶段执行
+// push
+// 1、 beginWork 阶段 tag 为 ContextProvider 时执行
+// 2、 beginWork 阶段，命中 bailout 时执行
 export function pushProvider<T>(context: ReactContext<T>, newValue: T) {
   prevContextValueStack.push(prevContextValue);
   prevContextValue = context._currentValue;
   context._currentValue = newValue;
 }
 
-// pop completeWork 阶段执行
+// pop
+// 1、completeWork 阶段 tag 为 ContextProvider 时执行
+// 2、unwindWork 阶段 tag 为 ContextProvider 时执行
 export function popProvider<T>(context: ReactContext<T>) {
   context._currentValue = prevContextValue;
   prevContextValue = prevContextValueStack.pop();
