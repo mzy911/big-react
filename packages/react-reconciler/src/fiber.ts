@@ -113,7 +113,7 @@ export class FiberRootNode {
   pendingLanes: Lanes; // 未被消费的 lane 集合
   suspendedLanes: Lanes; // 挂起的 lane
   pingedLanes: Lanes; // ping 时的 lane
-  finishedLane: Lane; // 本次更新消费的 lane
+  finishedLane: Lane; // render 结束时的 lane
   pendingPassiveEffects: PendingPassiveEffects; // 收集依赖的回调，卸载和更新时执行
 
   callbackNode: CallbackNode | null; // 异步调度的函数集合

@@ -290,7 +290,6 @@ function updateState<State>(): [State, Dispatch<State>] {
     hook.memoizedState = memoizedState;
     hook.baseState = newBaseState;
     hook.baseQueue = newBaseQueue;
-
     queue.lastRenderedState = memoizedState;
   }
 

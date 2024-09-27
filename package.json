@@ -7,6 +7,7 @@
     "build:dev": "rm -rf dist && rollup --bundleConfigAsCjs --config scripts/rollup/dev.config.js",
     "demo:performance": "vite serve demos/performance --config scripts/vite/vite.config.js --force",
     "demo:use": "vite serve demos/suspense-use --config scripts/vite/vite.config.js --force",
+    "demo:fc": "vite serve demos/test-fc --config scripts/vite/vite.config.js --force",
     "lint": "eslint --ext .ts,.jsx,.tsx --fix --quiet ./packages",
     "test": "jest --config scripts/jest/jest.config.js"
   },

@@ -91,7 +91,7 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
   // 赋值当前的 lane
   wipRootRenderLane = lane;
 
-  // 存在'未完成'状态
+  // '未完成'状态
   workInProgressRootExitStatus = RootInProgress;
   // 挂起状态
   workInProgressSuspendedReason = NotSuspended;
@@ -158,7 +158,7 @@ export function ensureRootIsScheduled(root: FiberRootNode) {
     // 2、performSyncWorkOnRoot：调度同步任务
     scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root));
 
-    // 3、scheduleMicroTask：使用微任务执行同步任务
+    // 3、使用微任务执行同步任务
     scheduleMicroTask(flushSyncCallbacks);
   } else {
     // 其他优先级 用宏任务调度
@@ -212,18 +212,17 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
   const nextLane = getNextLane(root);
 
   if (nextLane !== SyncLane) {
-    // 1、其他比SyncLane低的优先级
-    // 2、NoLane
-    // 3、
-    // 继续调度
+    // 1、NoLane、或比 SyncLane 低的优先级
+    // 2、理论上是不会进此方法的，因为 performSyncWorkOnRoot 优先级为 SyncLane
     ensureRootIsScheduled(root);
     return;
   }
 
-  // 走到此处，说明有更高优先级任务
+  // 获取 renderRoot 后的状态
   const exitStatus = renderRoot(root, nextLane, false);
 
   switch (exitStatus) {
+    // 完成：进入 commit 阶段
     case RootCompleted:
       const finishedWork = root.current.alternate;
       root.finishedWork = finishedWork;
@@ -352,11 +351,12 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
     }
   } while (true);
 
+  // '未完成'状态
   if (workInProgressRootExitStatus !== RootInProgress) {
     return workInProgressRootExitStatus;
   }
 
-  // 中断执行
+  // 异步中断状态
   if (shouldTimeSlice && workInProgress !== null) {
     return RootInComplete;
   }
