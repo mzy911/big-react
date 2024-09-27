@@ -36,7 +36,7 @@ import { flushSyncCallbacks, scheduleSyncCallback } from './syncTaskQueue';
 import { HostRoot } from './workTags';
 import {
   unstable_scheduleCallback as scheduleCallback, // 调度回调函数
-  unstable_NormalPriority as NormalPriority, // 优先级
+  unstable_NormalPriority as NormalPriority, // 对应 DefaultLane 优先级
   unstable_shouldYield,
   unstable_cancelCallback
 } from 'scheduler';
@@ -91,7 +91,7 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
   // 赋值当前的 lane
   wipRootRenderLane = lane;
 
-  // '未完成'状态
+  // 存在'未完成'状态
   workInProgressRootExitStatus = RootInProgress;
   // 挂起状态
   workInProgressSuspendedReason = NotSuspended;
@@ -101,7 +101,7 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 
 // 调度任务的入口函数
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
-  // 从当前节点找到根节点，途径的 father 的 fiber 上标记 childLanes
+  // 从当前节点找到根节点，途径 father 的 fiber 上标记 childLanes
   const root = markUpdateLaneFromFiberToRoot(fiber, lane);
 
   // 在 root 的 pendingLanes 上标记当前的 lane
@@ -132,12 +132,13 @@ export function ensureRootIsScheduled(root: FiberRootNode) {
   const curPriority = updateLane;
   const prevPriority = root.callbackPriority;
 
+  // TODO: 优先级相同为啥停止调度？
   // 优先级相同停止调度
   if (curPriority === prevPriority) {
     return;
   }
 
-  // 有更高优先级的任务，取消之前的任务
+  // 走到此处，说明有更高优先级的任务，取消之前的任务
   if (existingCallback !== null) {
     unstable_cancelCallback(existingCallback);
   }
@@ -152,7 +153,7 @@ export function ensureRootIsScheduled(root: FiberRootNode) {
   }
 
   if (updateLane === SyncLane) {
-    // 向同步任务队列中插入任务：[performSyncWorkOnRoot, performSyncWorkOnRoot, performSyncWorkOnRoot]
+    // 同步优先级，使用微任务调度
     // 1、scheduleSyncCallback：向 syncQueue 数组中插入回调函数
     // 2、performSyncWorkOnRoot：调度同步任务
     scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root));
@@ -204,6 +205,45 @@ export function markUpdateLaneFromFiberToRoot(fiber: FiberNode, lane: Lane) {
     return node.stateNode;
   }
   return null;
+}
+
+// 调度同步任务：同一批任务，此函数执行多次（每个update执行一次）
+function performSyncWorkOnRoot(root: FiberRootNode) {
+  const nextLane = getNextLane(root);
+
+  if (nextLane !== SyncLane) {
+    // 1、其他比SyncLane低的优先级
+    // 2、NoLane
+    // 3、
+    // 继续调度
+    ensureRootIsScheduled(root);
+    return;
+  }
+
+  // 走到此处，说明有更高优先级任务
+  const exitStatus = renderRoot(root, nextLane, false);
+
+  switch (exitStatus) {
+    case RootCompleted:
+      const finishedWork = root.current.alternate;
+      root.finishedWork = finishedWork;
+      root.finishedLane = nextLane;
+      wipRootRenderLane = NoLane;
+      commitRoot(root);
+      break;
+
+    // 未完成：使用了 use 但是没有使用 Suspense 包裹
+    case RootDidNotComplete:
+      wipRootRenderLane = NoLane;
+      markRootSuspended(root, nextLane);
+      ensureRootIsScheduled(root);
+      break;
+    default:
+      if (__DEV__) {
+        console.error('还未实现的同步更新结束状态');
+      }
+      break;
+  }
 }
 
 // 调度并发（异步）任务
@@ -260,47 +300,6 @@ function performConcurrentWorkOnRoot(
       if (__DEV__) {
         console.error('还未实现的并发更新结束状态');
       }
-  }
-}
-
-// 调度同步任务(同一批任务，此函数执行多次)
-function performSyncWorkOnRoot(root: FiberRootNode) {
-  // 再次获取优先级：同一批同步任务，此处会执行多次；
-  const nextLane = getNextLane(root);
-
-  if (nextLane !== SyncLane) {
-    // 非同步任务
-    // 1、其他比SyncLane低的优先级
-    // 2、NoLane
-
-    // 继续调度
-    ensureRootIsScheduled(root);
-    return;
-  }
-
-  // 走到此处，说明有更高优先级任务
-  const exitStatus = renderRoot(root, nextLane, false);
-
-  switch (exitStatus) {
-    case RootCompleted:
-      const finishedWork = root.current.alternate;
-      root.finishedWork = finishedWork;
-      root.finishedLane = nextLane;
-      wipRootRenderLane = NoLane;
-      commitRoot(root);
-      break;
-
-    // 未完成：使用了 use 但是没有使用 Suspense 包裹
-    case RootDidNotComplete:
-      wipRootRenderLane = NoLane;
-      markRootSuspended(root, nextLane);
-      ensureRootIsScheduled(root);
-      break;
-    default:
-      if (__DEV__) {
-        console.error('还未实现的同步更新结束状态');
-      }
-      break;
   }
 }
 
@@ -403,8 +402,8 @@ function commitRoot(root: FiberRootNode) {
   ) {
     if (!rootDoesHasPassiveEffects) {
       rootDoesHasPassiveEffects = true;
-      // 调度副作用：
-      // 1、以 NormalPriority 优先级进行调度
+      // 调度副作用函数
+      // 1、以 NormalPriority（ DefaultLane ） 优先级进行调度
       // 2、在 setTimeout 中被执行的副作用函数 flushPassiveEffects
       scheduleCallback(NormalPriority, () => {
         // 执行副作用

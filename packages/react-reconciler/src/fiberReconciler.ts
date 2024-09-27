@@ -36,8 +36,10 @@ export function updateContainer(
   element: ReactElementType | null,
   root: FiberRootNode
 ) {
+  // 根结点使用 ImmediatePriority
   unstable_runWithPriority(unstable_ImmediatePriority, () => {
     const hostRootFiber = root.current;
+
     const lane = requestUpdateLane();
 
     // 创建 update 对象并追加到 enqueueUpdate 队列中

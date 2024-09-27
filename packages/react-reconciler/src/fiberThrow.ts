@@ -1,7 +1,7 @@
 import { Wakeable } from 'shared/ReactTypes';
 import { FiberNode, FiberRootNode } from './fiber';
 import { ShouldCapture } from './fiberFlags';
-import { Lane, Lanes, SyncLane, markRootPinged } from './fiberLanes';
+import { Lane, markRootPinged } from './fiberLanes';
 import { ensureRootIsScheduled, markRootUpdated } from './workLoop';
 import { getSuspenseHandler } from './suspenseContext';
 

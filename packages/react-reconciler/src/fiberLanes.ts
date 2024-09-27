@@ -13,20 +13,35 @@ export type Lane = number;
 // 二进制位，代表 lane 的集合
 export type Lanes = number;
 
-export const SyncLane = 0b00001; // 同步
-export const NoLane = 0b00000; // 异步
-export const NoLanes = 0b00000; // 没有优先级
-export const InputContinuousLane = 0b00010;
-export const DefaultLane = 0b00100;
-export const TransitionLane = 0b01000;
-export const IdleLane = 0b10000;
+export const NoLane = 0b00000;
+export const NoLanes = 0b00000;
+export const SyncLane = 0b00001; // 同步优先级
+export const InputContinuousLane = 0b00010; // 手动触发的优先级
+export const DefaultLane = 0b00100; // 默认优先级
+export const TransitionLane = 0b01000; // Transition 优先级
+export const IdleLane = 0b10000; // 空闲优先级
+
+// scheduler：调度器中的五种优先级
+// ImmediatePriority‌：高优先级，用于执行紧急且重要的任务。
+// UserBlockingPriority‌：用户阻塞优先级，用于处理用户交互事件，如点击、滚动等。
+// NormalPriority‌：正常优先级，用于执行非紧急且非用户阻塞的任务。
+// LowPriority‌：低优先级，用于执行较低重要性的任务。
+// IdlePriority‌：空闲优先级，用于在浏览器空闲时执行一些维护任务。
 
 // 获取两个 lane 的集合
 export function mergeLanes(laneA: Lane, laneB: Lane): Lanes {
   return laneA | laneB;
 }
 
-// 拿到 update 中的 lane(优先级)
+/**
+ *  创建 update 对象时，获取上下文环境中的优先级
+ *  1、存在 transition 返回 TransitionLane
+ *  2、
+ *    2.1 从 unstable_getCurrentPriorityLevel 中获取 Scheduler 上下文的优先级
+ *    2.2 调用 unstable_runWithPriority 方法，传入一个优先级（重置全局环境变量为传入的优先级）
+ *    2.3 启动项目时、点击事件时执行 unstable_runWithPriority 方法
+ *  3、将上下文环境 Scheduler 优先级转换为 lane
+ */
 export function requestUpdateLane() {
   const isTransition = ReactCurrentBatchConfig.transition !== null;
   if (isTransition) {
@@ -96,7 +111,7 @@ export function markRootSuspended(root: FiberRootNode, suspendedLane: Lane) {
   root.pingedLanes &= ~suspendedLane;
 }
 
-// 获取下一个有效的、优先级最高的 lane（排除被挂起的lane）
+// 获取优先级最高的 lane（排除被挂起的lane）
 export function getNextLane(root: FiberRootNode): Lane {
   const pendingLanes = root.pendingLanes;
 
@@ -106,8 +121,9 @@ export function getNextLane(root: FiberRootNode): Lane {
   }
   let nextLane = NoLane;
 
-  // 去掉挂起的lane
+  // pendingLanes 中去掉 suspendedLanes
   const suspendedLanes = pendingLanes & ~root.suspendedLanes;
+
   if (suspendedLanes !== NoLanes) {
     nextLane = getHighestPriorityLane(suspendedLanes);
   } else {
