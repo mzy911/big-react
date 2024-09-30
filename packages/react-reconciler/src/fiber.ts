@@ -109,12 +109,12 @@ export interface PendingPassiveEffects {
 export class FiberRootNode {
   container: Container; // 容器"根节点"，不一定为DOM
   current: FiberNode; // 指向 hostRootFiber
-  finishedWork: FiberNode | null; // 指向更新完成之后的 hostRootFiber
+  finishedWork: FiberNode | null; // 记录上次 render 结束之后的 fiber
+  finishedLane: Lane; // 记录上次 render 结束之后的 lane
   pendingLanes: Lanes; // 未被消费的 lane 集合
   suspendedLanes: Lanes; // 挂起的 lane
   pingedLanes: Lanes; // ping 时的 lane
-  finishedLane: Lane; // render 结束时的 lane
-  pendingPassiveEffects: PendingPassiveEffects; // 收集依赖的回调，卸载和更新时执行
+  pendingPassiveEffects: PendingPassiveEffects; // useEffects 等副作用行数
 
   callbackNode: CallbackNode | null; // 异步调度的函数集合
   callbackPriority: Lane; // 上次调度的优先级

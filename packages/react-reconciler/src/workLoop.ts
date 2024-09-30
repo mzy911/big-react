@@ -101,10 +101,11 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 
 // 调度任务的入口函数
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
-  // 从当前节点找到根节点，途径 father 的 fiber 上标记 childLanes
+  // 1、向上找到 fiberRootNode 根结点
+  // 2、途径 father 的 fiber 上的 childLanes 标记 lane
   const root = markUpdateLaneFromFiberToRoot(fiber, lane);
 
-  // 在 root 的 pendingLanes 上标记当前的 lane
+  // 在 fiberRootNode 的 pendingLanes 上标记当前的 lane
   markRootUpdated(root, lane);
 
   // 进入调度过程
@@ -132,13 +133,14 @@ export function ensureRootIsScheduled(root: FiberRootNode) {
   const curPriority = updateLane;
   const prevPriority = root.callbackPriority;
 
-  // TODO: 优先级相同为啥停止调度？
-  // 优先级相同停止调度
+  // 1、curPriority === prevPriority 不进入新的调度
+  // 2、一次调度会执行，相同 lane 创建的 updates
   if (curPriority === prevPriority) {
     return;
   }
 
-  // 走到此处，说明有更高优先级的任务，取消之前的任务
+  // 1、走到此处，说明有更高优先级的任务
+  // 2、取消之前的任务（非同步优先级的任务）
   if (existingCallback !== null) {
     unstable_cancelCallback(existingCallback);
   }
@@ -212,8 +214,8 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
   const nextLane = getNextLane(root);
 
   if (nextLane !== SyncLane) {
-    // 1、NoLane、或比 SyncLane 低的优先级
-    // 2、理论上是不会进此方法的，因为 performSyncWorkOnRoot 优先级为 SyncLane
+    // 1、NoLane、
+    // 2、或比 SyncLane 低的优先级（pingedLanes）
     ensureRootIsScheduled(root);
     return;
   }
@@ -250,9 +252,11 @@ function performConcurrentWorkOnRoot(
   root: FiberRootNode,
   didTimeout: boolean
 ): any {
-  // 保证useEffect回调执行
   const curCallback = root.callbackNode;
+
+  // 保证 useEffect 回调执行完
   const didFlushPassiveEffect = flushPassiveEffects(root.pendingPassiveEffects);
+
   if (didFlushPassiveEffect) {
     if (root.callbackNode !== curCallback) {
       return null;
@@ -264,20 +268,22 @@ function performConcurrentWorkOnRoot(
   if (lane === NoLane) {
     return null;
   }
+
+  // TODO: 异步任务中，为啥要判断 lane === SyncLane
   const needSync = lane === SyncLane || didTimeout;
 
-  // render阶段
+  // render 阶段
   const exitStatus = renderRoot(root, lane, !needSync);
 
   switch (exitStatus) {
-    // 中断
+    // 中断：继续执行 performConcurrentWorkOnRoot
     case RootInComplete:
       if (root.callbackNode !== curCallbackNode) {
         return null;
       }
       return performConcurrentWorkOnRoot.bind(null, root);
 
-    // 完成
+    // 完成：进入 commit 阶段
     case RootCompleted:
       // 获取到带有 Flags 完成的 workInProgressFiber
       const finishedWork = root.current.alternate;
@@ -330,11 +336,15 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
         workInProgressSuspendedReason = NotSuspended;
         workInProgressThrownValue = null;
 
-        // 进入 unwind 的流程，最终找到最近的 Suspence 开始新一轮的渲染
+        // 1、进入 unwind 的流程
+        // 2、向上找到最近的 Suspense 节点并赋值给 workInProgress
+        // 3、进入下一步，继续新的 render 流程
         throwAndUnwindWorkLoop(root, workInProgress, thrownValue, lane);
       }
 
       shouldTimeSlice ? workLoopConcurrent() : workLoopSync();
+
+      // 手动打断
       break;
     } catch (e) {
       if (__DEV__) {
@@ -402,11 +412,10 @@ function commitRoot(root: FiberRootNode) {
   ) {
     if (!rootDoesHasPassiveEffects) {
       rootDoesHasPassiveEffects = true;
-      // 调度副作用函数
+      // 调度 useEffects 等副作用函数
       // 1、以 NormalPriority（ DefaultLane ） 优先级进行调度
       // 2、在 setTimeout 中被执行的副作用函数 flushPassiveEffects
       scheduleCallback(NormalPriority, () => {
-        // 执行副作用
         flushPassiveEffects(root.pendingPassiveEffects);
         return;
       });
@@ -482,7 +491,7 @@ function workLoopConcurrent() {
   }
 }
 
-// 开始执行工作单元 - 递的阶段
+// render - 递的阶段
 function performUnitOfWork(fiber: FiberNode) {
   // 返回子 Fiber
   const next = beginWork(fiber, wipRootRenderLane);
@@ -490,15 +499,15 @@ function performUnitOfWork(fiber: FiberNode) {
   fiber.memoizedProps = fiber.pendingProps;
 
   if (next === null) {
-    // 找不到子 Fiber 进入归的阶段
+    // 找不到叶子节点进入 completeWork
     completeUnitOfWork(fiber);
   } else {
-    // 将子 Fiber 赋值给 workInProgress
+    // 存在叶子节点继续 renderWork
     workInProgress = next;
   }
 }
 
-// 完成工作单元 - 归的阶段
+// render - 归的阶段
 function completeUnitOfWork(fiber: FiberNode) {
   let node: FiberNode | null = fiber;
 
@@ -524,11 +533,6 @@ function completeUnitOfWork(fiber: FiberNode) {
 
 // WorkLoop 阶段：处理 render 过程中，抛出的错误
 function handleThrow(root: FiberRootNode, thrownValue: any): void {
-  /*
-		throw可能的情况
-			1. use thenable
-			2. error (Error Boundary处理)
-	*/
   if (thrownValue === SuspenseException) {
     // 处理 Suspense 相关的错误
     workInProgressSuspendedReason = SuspendedOnData;
@@ -565,7 +569,7 @@ function throwAndUnwindWorkLoop(
   // 2.3、等待 use 的 thenable 执行完进入 ping 阶段，开始新的 render 阶段
   throwException(root, thrownValue, lane);
 
-  // 3、unwind 阶段，向上找到最新的 Suspense 节点 重新 render
+  // 3、unwind 阶段，向上找到最近的 Suspense 节点并赋值给 workInProgress
   unwindUnitOfWork(unitOfWork);
 }
 
@@ -593,6 +597,7 @@ function unwindUnitOfWork(unitOfWork: FiberNode) {
     // workInProgress = incompleteWork;
   } while (incompleteWork !== null);
 
+  // 没找到 Suspense
   // 1、没有边界 中止 unwind 流程
   // 2、比如：使用了 use 但是没有使用 Suspense 包裹
   workInProgress = null;

@@ -44,7 +44,7 @@ let curCallback: CallbackNode | null = null;
     ][priority];
     btn.onclick = () => {
       workList.unshift({
-        count: 100,
+        count: 500,
         priority: priority as Priority
       });
       schedule();

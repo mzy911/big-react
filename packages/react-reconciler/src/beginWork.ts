@@ -67,7 +67,6 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
     if (oldProps !== newProps || current.type !== wip.type) {
       didReceiveUpdate = true;
     } else {
-      // TODO: current.lanes 和 renderLane 为什么可以判断 state、context 变化
       // 四要素：state context
       const hasScheduledStateOrContext = checkScheduledUpdateOrContext(
         current,
@@ -191,6 +190,7 @@ function updateHostComponent(wip: FiberNode) {
 
   // 标记 Ref 副作用
   markRef(wip.alternate, wip);
+
   reconcileChildren(wip, nextChildren);
   return wip.child;
 }
@@ -201,7 +201,7 @@ function updateFunctionComponent(
   Component: FiberNode['type'],
   renderLane: Lane
 ) {
-  // 重置 Context
+  // 重置 context 链表
   prepareToReadContext(wip, renderLane);
 
   // 执行函数组件内的 hooks
@@ -248,6 +248,8 @@ function updateContextProvider(wip: FiberNode, renderLane: Lane) {
       return bailoutOnAlreadyFinishedWork(wip, renderLane);
     } else {
       // value 发生变化
+      // 1、向下找到 context 的 consumer，
+      // 2、途径的函数组件的 fiber 上标记 fiber.lanes
       propagateContextChange(wip, context, renderLane);
     }
   }

@@ -40,7 +40,7 @@ export function popProvider<T>(context: ReactContext<T>) {
   prevContextValue = prevContextValueStack.pop();
 }
 
-// 重置 context 状态
+// 重置 context 链表
 export function prepareToReadContext(wip: FiberNode, renderLane: Lane) {
   lastContextDep = null;
 
@@ -59,7 +59,7 @@ export function prepareToReadContext(wip: FiberNode, renderLane: Lane) {
   }
 }
 
-// 执行 use 方法时调用
+// 执行 useContext 方法时调用
 // 1、读取 context 的 value
 // 2、构建 fiber context 链表
 export function readContext<T>(
@@ -91,7 +91,7 @@ export function readContext<T>(
   return value;
 }
 
-// update 阶段调用
+// Provider 在 update 阶段 values 值发生变化
 // 1、向下查找使用到 context.provider 的 cmp
 // 2、找到之后，向上标记 deps.lanes
 export function propagateContextChange<T>(

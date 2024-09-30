@@ -35,10 +35,10 @@ function attachPingListener(
       if (pingCache !== null) {
         pingCache.delete(wakeable);
       }
-      // ping 的时候 root 上标记 pendingLanes
+      // ping 的时候 root 的 pendingLanes 上标记当前 lane
       markRootUpdated(root, lane);
 
-      // ping 的时候 root 上标记 pingedLanes
+      // ping 的时候 root 的 pingedLanes 上标记当前 lane
       markRootPinged(root, lane);
 
       // 触发新的更新
