@@ -50,18 +50,18 @@ export class FiberNode {
   // 作为工作单元
   pendingProps: Props; // 当前处理过程中的组件props对象
   memoizedProps: Props | null; // 上一次渲染完成之后的props
-  memoizedState: any; // 上一次渲染的时候的 state 以链表的形式保存 Hooks：useState--> useEffect--> useState....
+  memoizedState: any; // 1、HostRoot 节点存储 children 2、FunctionComponent 节点存储 hooks链表 (useState--> useEffect--> useState....)
   updateQueue: unknown; // 该 Fiber 对应的组件产生的Update会存放在这个队列里面
   alternate: FiberNode | null; // fiber的版本池，即记录fiber更新过程，便于恢复
 
   // 副作用
-  flags: Flags;
-  subtreeFlags: Flags;
+  flags: Flags; // 1、unwindWork 阶段标记 DidCapture 2、
+  subtreeFlags: Flags; // 收集的子节点的 flags
   deletions: FiberNode[] | null;
   dependencies: FiberDependencies<any> | null; // 函数组件内多个 useContext 的链表
 
   // 优先级
-  lanes: Lanes; // bailout 机制中收集的的 lanes
+  lanes: Lanes; // 1、收集 enqueueUpdate、processUpdateQueue、propagateContextChange 收集 lane 2、 用于在调用 dispatch() 中判断是否命中 eager 策略
   childLanes: Lanes; // 收集的子节点的 lanes
 
   constructor(tag: WorkTag, pendingProps: Props, key: Key) {
@@ -111,12 +111,12 @@ export class FiberRootNode {
   current: FiberNode; // 指向 hostRootFiber
   finishedWork: FiberNode | null; // 记录上次 render 结束之后的 fiber
   finishedLane: Lane; // 记录上次 render 结束之后的 lane
-  pendingLanes: Lanes; // 未被消费的 lane 集合
-  suspendedLanes: Lanes; // 挂起的 lane
+  pendingLanes: Lanes; // 未被消费的 lane 集合（ scheduleUpdateOnFiber()时插入 ）
+  suspendedLanes: Lanes; // suspended 时的 lane
   pingedLanes: Lanes; // ping 时的 lane
   pendingPassiveEffects: PendingPassiveEffects; // useEffects 等副作用行数
 
-  callbackNode: CallbackNode | null; // 异步调度的函数集合
+  callbackNode: CallbackNode | null; // 上次调度的异步任务
   callbackPriority: Lane; // 上次调度的优先级
 
   pingCache: WeakMap<Wakeable<any>, Set<Lane>> | null;

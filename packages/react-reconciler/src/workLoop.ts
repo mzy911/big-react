@@ -80,32 +80,15 @@ let workInProgressSuspendedReason: SuspendedReason = NotSuspended;
 // 渲染过程中失败值
 let workInProgressThrownValue: any = null;
 
-// 每次进入 render 先重置全局状态
-function prepareFreshStack(root: FiberRootNode, lane: Lane) {
-  root.finishedLane = NoLane;
-  root.finishedWork = null;
-
-  // 创建 workInProgress
-  workInProgress = createWorkInProgress(root.current, {});
-
-  // 赋值当前的 lane
-  wipRootRenderLane = lane;
-
-  // '未完成'状态
-  workInProgressRootExitStatus = RootInProgress;
-  // 挂起状态
-  workInProgressSuspendedReason = NotSuspended;
-  // 渲染过程中失败值
-  workInProgressThrownValue = null;
-}
-
-// 调度任务的入口函数
+// 调度任务的入口函数：渲染根节点、setState 时调用
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
   // 1、向上找到 fiberRootNode 根结点
   // 2、途径 father 的 fiber 上的 childLanes 标记 lane
   const root = markUpdateLaneFromFiberToRoot(fiber, lane);
 
-  // 在 fiberRootNode 的 pendingLanes 上标记当前的 lane
+  // 在 fiberRootNode.pendingLanes 上标记当前的 lane
+  // 1、lanes 就几种类型
+  // 2、用于批量处理
   markRootUpdated(root, lane);
 
   // 进入调度过程
@@ -114,7 +97,7 @@ export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 
 // 调度任务
 export function ensureRootIsScheduled(root: FiberRootNode) {
-  // 获取优先级最高的 lane
+  // 获取 fiberRootNode.pendingLanes 中优先级最高的 lane
   const updateLane = getNextLane(root);
   const existingCallback = root.callbackNode;
 
@@ -133,12 +116,14 @@ export function ensureRootIsScheduled(root: FiberRootNode) {
   const curPriority = updateLane;
   const prevPriority = root.callbackPriority;
 
+  // 批处理
   // 1、curPriority === prevPriority 不进入新的调度
   // 2、一次调度会执行，相同 lane 创建的 updates
   if (curPriority === prevPriority) {
     return;
   }
 
+  // 高优先级打断低优先级
   // 1、走到此处，说明有更高优先级的任务
   // 2、取消之前的任务（非同步优先级的任务）
   if (existingCallback !== null) {
@@ -379,6 +364,25 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
   return RootCompleted;
 }
 
+// 每次进入 render 先重置全局状态
+function prepareFreshStack(root: FiberRootNode, lane: Lane) {
+  root.finishedLane = NoLane;
+  root.finishedWork = null;
+
+  // 创建 workInProgress
+  workInProgress = createWorkInProgress(root.current, {});
+
+  // 赋值当前的 lane
+  wipRootRenderLane = lane;
+
+  // '未完成'状态
+  workInProgressRootExitStatus = RootInProgress;
+  // 挂起状态
+  workInProgressSuspendedReason = NotSuspended;
+  // 渲染过程中失败值
+  workInProgressThrownValue = null;
+}
+
 // commit 包含三个子阶段：beforeMutation(突变前)、mutation(突变)、layout
 // 1、fiber 树的切换：root.current = finishedWork
 // 2、对元素的 Effect 执行对应的操作
@@ -406,15 +410,16 @@ function commitRoot(root: FiberRootNode) {
   // commit 阶段，移除、重置相关联的 lanes
   markRootFinished(root, lane);
 
+  // 调度 useEffects 等副作用函数
+  // 1、以 NormalPriority（ DefaultLane ） 优先级进行调度
+  // 2、在 setTimeout 中被执行的副作用函数 flushPassiveEffects
   if (
     (finishedWork.flags & PassiveMask) !== NoFlags ||
     (finishedWork.subtreeFlags & PassiveMask) !== NoFlags
   ) {
     if (!rootDoesHasPassiveEffects) {
       rootDoesHasPassiveEffects = true;
-      // 调度 useEffects 等副作用函数
-      // 1、以 NormalPriority（ DefaultLane ） 优先级进行调度
-      // 2、在 setTimeout 中被执行的副作用函数 flushPassiveEffects
+
       scheduleCallback(NormalPriority, () => {
         flushPassiveEffects(root.pendingPassiveEffects);
         return;
@@ -431,7 +436,6 @@ function commitRoot(root: FiberRootNode) {
 
   if (subtreeHasEffect || rootHasEffect) {
     // beforeMutation
-
     // 从根节点找到变更的元素，执行对应操作
     // 进行 mutation
     commitMutationEffects(finishedWork, root);
@@ -446,7 +450,10 @@ function commitRoot(root: FiberRootNode) {
   }
 
   rootDoesHasPassiveEffects = false;
-  ensureRootIsScheduled(root);
+
+  // 1、开启新一轮的调度
+  // 2、例如：高优先级任务执行完，接下来执行低优先级任务
+  // ensureRootIsScheduled(root);
 }
 
 // 执行副作用：本次更新的任何create回调函数都必须在上一次更新的destory回到函数后执行

@@ -222,6 +222,7 @@ function hideOrShowAllChildren(finishedWork: FiberNode, isHidden: boolean) {
   });
 }
 
+// 重置 useRef 的值：commit 的 mutation 阶段、commitDeletion 阶段触发
 function safelyDetachRef(current: FiberNode) {
   const ref = current.ref;
   if (ref !== null) {
@@ -233,6 +234,7 @@ function safelyDetachRef(current: FiberNode) {
   }
 }
 
+// 重新赋值 useRef 的值：commit 的 layout 阶段触发
 function safelyAttachRef(fiber: FiberNode) {
   const ref = fiber.ref;
   if (ref !== null) {
@@ -333,7 +335,9 @@ function recordHostChildrenToDelete(
   // 2. 每找到一个 host节点，判断下这个节点是不是 1 找到那个节点的兄弟节点
 }
 
-// commit 删除
+// commit 删除节点
+// 1、tag 为 HostComponent 解绑 ref
+// 2、tag 为 FunctionComponent 执行 useEffect 中的 unmount 回调函数
 function commitDeletion(childToDelete: FiberNode, root: FiberRootNode) {
   const rootChildrenToDelete: FiberNode[] = [];
 

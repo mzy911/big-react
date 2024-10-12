@@ -188,7 +188,9 @@ function updateHostComponent(wip: FiberNode) {
   const nextProps = wip.pendingProps;
   const nextChildren = nextProps.children;
 
-  // 标记 Ref 副作用
+  // 标记 Ref
+  // 1、标记时机：begionWork、completeWork 阶段
+  // 2、标记条件：mount 时存在 ref、update 时 ref 引用变化
   markRef(wip.alternate, wip);
 
   reconcileChildren(wip, nextChildren);
@@ -357,8 +359,8 @@ function updateMemoComponent(wip: FiberNode, renderLane: Lane) {
 
 // 标记 ref 副作用
 function markRef(current: FiberNode | null, workInProgress: FiberNode) {
+  // div 上是否有 ref
   const ref = workInProgress.ref;
-
   if (
     (current === null && ref !== null) ||
     (current !== null && current.ref !== ref)
@@ -386,6 +388,7 @@ function bailoutOnAlreadyFinishedWork(wip: FiberNode, renderLane: Lane) {
   return wip.child;
 }
 
+// 根据 lane 判断是否要重新 render
 function checkScheduledUpdateOrContext(
   current: FiberNode,
   renderLane: Lane

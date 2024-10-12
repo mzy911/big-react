@@ -13,6 +13,12 @@ export type Lane = number;
 // 二进制位，代表 lane 的集合
 export type Lanes = number;
 
+// scheduler：调度器中的五种优先级
+// ImmediatePriority‌：高优先级，用于执行紧急且重要的任务。
+// UserBlockingPriority‌：用户阻塞优先级，用于处理用户交互事件，如点击、滚动等。
+// NormalPriority‌：正常优先级，用于执行非紧急且非用户阻塞的任务。
+// LowPriority‌：低优先级，用于执行较低重要性的任务。
+// IdlePriority‌：空闲优先级，用于在浏览器空闲时执行一些维护任务。
 export const NoLane = 0b00000;
 export const NoLanes = 0b00000;
 export const SyncLane = 0b00001; // 同步优先级
@@ -20,13 +26,6 @@ export const InputContinuousLane = 0b00010; // 手动触发的优先级
 export const DefaultLane = 0b00100; // 默认优先级
 export const TransitionLane = 0b01000; // Transition 优先级
 export const IdleLane = 0b10000; // 空闲优先级
-
-// scheduler：调度器中的五种优先级
-// ImmediatePriority‌：高优先级，用于执行紧急且重要的任务。
-// UserBlockingPriority‌：用户阻塞优先级，用于处理用户交互事件，如点击、滚动等。
-// NormalPriority‌：正常优先级，用于执行非紧急且非用户阻塞的任务。
-// LowPriority‌：低优先级，用于执行较低重要性的任务。
-// IdlePriority‌：空闲优先级，用于在浏览器空闲时执行一些维护任务。
 
 // 获取两个 lane 的集合
 export function mergeLanes(laneA: Lane, laneB: Lane): Lanes {

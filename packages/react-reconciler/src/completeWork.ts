@@ -27,7 +27,6 @@ function markUpdate(fiber: FiberNode) {
   fiber.flags |= Update;
 }
 
-// 标记 ref
 function markRef(fiber: FiberNode) {
   fiber.flags |= Ref;
 }

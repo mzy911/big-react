@@ -40,7 +40,9 @@ export function popProvider<T>(context: ReactContext<T>) {
   prevContextValue = prevContextValueStack.pop();
 }
 
-// 重置 context 链表
+// 重置函数 Fiber 上的 useContext 链表
+// 1、beginWork 阶段 tag 为 FunctionComponent 时执行
+// 2、每次重新 render FunctionComponent 时重置 wip.dependencies
 export function prepareToReadContext(wip: FiberNode, renderLane: Lane) {
   lastContextDep = null;
 
@@ -59,9 +61,12 @@ export function prepareToReadContext(wip: FiberNode, renderLane: Lane) {
   }
 }
 
-// 执行 useContext 方法时调用
-// 1、读取 context 的 value
-// 2、构建 fiber context 链表
+// 执行 useContext() 时调用
+// 1、调用时机
+//    1.1 在函数组件中调用 useContext()
+//    1.2 当 use 作为 useContext 使用时
+// 2、读取 context 的 value
+// 3、构建 fiber 的 context 链表
 export function readContext<T>(
   consumer: FiberNode | null,
   context: ReactContext<T>
@@ -91,9 +96,12 @@ export function readContext<T>(
   return value;
 }
 
-// Provider 在 update 阶段 values 值发生变化
-// 1、向下查找使用到 context.provider 的 cmp
-// 2、找到之后，向上标记 deps.lanes
+// Provider 的 values 值发生变化
+// 1、beginWork 阶段 tag 为 ContextProvider 时且 values 发生变化时执行
+// 2、
+//   2.1 向下查找使用到 context.provider 的 cmp
+//   2.2 在 fiber.lanes 和 deps.lanes 上标记 lane
+//   2.2 向上在 node.childLanes 上标记 lane
 export function propagateContextChange<T>(
   wip: FiberNode,
   context: ReactContext<T>,
@@ -108,6 +116,7 @@ export function propagateContextChange<T>(
   while (fiber !== null) {
     let nextFiber = null;
     const deps = fiber.dependencies;
+
     if (deps !== null) {
       nextFiber = fiber.child;
 
@@ -115,7 +124,7 @@ export function propagateContextChange<T>(
       while (contextItem !== null) {
         // 在 deps 中找到当前的 context
         if (contextItem.context === context) {
-          // 找到了
+          // 在 fiber.lanes 上标记 lene
           fiber.lanes = mergeLanes(fiber.lanes, renderLane);
 
           const alternate = fiber.alternate;
@@ -125,9 +134,13 @@ export function propagateContextChange<T>(
 
           // 向上标记
           scheduleContextWorkOnParentPath(fiber.return, wip, renderLane);
+
+          // 在 deps.lanes 上标记 lane
           deps.lanes = mergeLanes(deps.lanes, renderLane);
           break;
         }
+
+        // 继续找下一个 context
         contextItem = contextItem.next;
       }
     } else if (fiber.tag === ContextProvider) {
