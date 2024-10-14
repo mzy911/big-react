@@ -48,6 +48,7 @@ interface Hook {
   // 1、useState：计算后的 state 值
   // 2、useEfffect： 存储 Effects 链表
   // 3、useRef：存储 Ref 对象
+  // ...
   memoizedState: any;
 
   // 记录当前正在执行的 Hook 上的 update 链表
@@ -55,6 +56,7 @@ interface Hook {
 
   // useState：记录 update 链表
   updateQueue: unknown;
+
   next: Hook | null;
 }
 

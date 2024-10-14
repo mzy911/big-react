@@ -96,8 +96,8 @@ export const processUpdateQueue = <State>(
   renderLane: Lane,
   onSkipUpdate?: <State>(update: Update<State>) => void
 ): {
-  memoizedState: State;
-  baseState: State;
+  memoizedState: State; // 计算后的值
+  baseState: State; // 最后一个不被跳过的值
   baseQueue: Update<State> | null;
 } => {
   const result: ReturnType<typeof processUpdateQueue<State>> = {
@@ -112,10 +112,10 @@ export const processUpdateQueue = <State>(
     const first = pendingUpdate.next;
     let pending = pendingUpdate.next as Update<any>;
 
+    let newState = baseState;
     let newBaseState = baseState;
     let newBaseQueueFirst: Update<State> | null = null;
     let newBaseQueueLast: Update<State> | null = null;
-    let newState = baseState;
 
     do {
       const updateLane = pending.lane;
@@ -162,6 +162,7 @@ export const processUpdateQueue = <State>(
     } else {
       newBaseQueueLast.next = newBaseQueueFirst;
     }
+
     result.memoizedState = newState;
     result.baseState = newBaseState;
     result.baseQueue = newBaseQueueLast;

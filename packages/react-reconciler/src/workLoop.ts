@@ -118,15 +118,13 @@ export function ensureRootIsScheduled(root: FiberRootNode) {
 
   // 批处理
   // 1、curPriority === prevPriority 不进入新的调度
-  // 2、一次调度会执行，相同 lane 创建的 updates
+  // 2、相同的 lane 在一次调度中进行批处理
   if (curPriority === prevPriority) {
     return;
   }
 
-  // 高优先级打断低优先级
-  // 1、走到此处，说明有更高优先级的任务
-  // 2、取消之前的任务（非同步优先级的任务）
   if (existingCallback !== null) {
+    // 高优先级打断低优先级任务
     unstable_cancelCallback(existingCallback);
   }
 
@@ -159,7 +157,7 @@ export function ensureRootIsScheduled(root: FiberRootNode) {
     );
   }
 
-  // 重置状态
+  // 赋值
   root.callbackNode = newCallbackNode;
   root.callbackPriority = curPriority;
 }
@@ -199,6 +197,7 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
   const nextLane = getNextLane(root);
 
   if (nextLane !== SyncLane) {
+    // 非同步优先级重新调度
     // 1、NoLane、
     // 2、或比 SyncLane 低的优先级（pingedLanes）
     ensureRootIsScheduled(root);
@@ -212,8 +211,11 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
     // 完成：进入 commit 阶段
     case RootCompleted:
       const finishedWork = root.current.alternate;
+
+      // 记录上次 render 详情
       root.finishedWork = finishedWork;
       root.finishedLane = nextLane;
+
       wipRootRenderLane = NoLane;
       commitRoot(root);
       break;
@@ -410,7 +412,7 @@ function commitRoot(root: FiberRootNode) {
   // commit 阶段，移除、重置相关联的 lanes
   markRootFinished(root, lane);
 
-  // 调度 useEffects 等副作用函数
+  // 调度 useEffects 等副作用函数：在 Mutation 阶段、commitDeletion 阶段收集
   // 1、以 NormalPriority（ DefaultLane ） 优先级进行调度
   // 2、在 setTimeout 中被执行的副作用函数 flushPassiveEffects
   if (

@@ -270,49 +270,6 @@ function commitPassiveEffect(
   }
 }
 
-function commitHookEffectList(
-  flags: Flags,
-  lastEffect: Effect,
-  callback: (effect: Effect) => void
-) {
-  let effect = lastEffect.next as Effect;
-
-  do {
-    if ((effect.tag & flags) === flags) {
-      callback(effect);
-    }
-    effect = effect.next as Effect;
-  } while (effect !== lastEffect.next);
-}
-
-export function commitHookEffectListUnmount(flags: Flags, lastEffect: Effect) {
-  commitHookEffectList(flags, lastEffect, (effect) => {
-    const destroy = effect.destroy;
-    if (typeof destroy === 'function') {
-      destroy();
-    }
-    effect.tag &= ~HookHasEffect;
-  });
-}
-
-export function commitHookEffectListDestroy(flags: Flags, lastEffect: Effect) {
-  commitHookEffectList(flags, lastEffect, (effect) => {
-    const destroy = effect.destroy;
-    if (typeof destroy === 'function') {
-      destroy();
-    }
-  });
-}
-
-export function commitHookEffectListCreate(flags: Flags, lastEffect: Effect) {
-  commitHookEffectList(flags, lastEffect, (effect) => {
-    const create = effect.create;
-    if (typeof create === 'function') {
-      effect.destroy = create();
-    }
-  });
-}
-
 function recordHostChildrenToDelete(
   childrenToDelete: FiberNode[],
   unmountFiber: FiberNode
@@ -520,4 +477,47 @@ function insertOrAppendPlacementNodeIntoContainer(
       sibling = sibling.sibling;
     }
   }
+}
+
+function commitHookEffectList(
+  flags: Flags,
+  lastEffect: Effect,
+  callback: (effect: Effect) => void
+) {
+  let effect = lastEffect.next as Effect;
+
+  do {
+    if ((effect.tag & flags) === flags) {
+      callback(effect);
+    }
+    effect = effect.next as Effect;
+  } while (effect !== lastEffect.next);
+}
+
+export function commitHookEffectListUnmount(flags: Flags, lastEffect: Effect) {
+  commitHookEffectList(flags, lastEffect, (effect) => {
+    const destroy = effect.destroy;
+    if (typeof destroy === 'function') {
+      destroy();
+    }
+    effect.tag &= ~HookHasEffect;
+  });
+}
+
+export function commitHookEffectListDestroy(flags: Flags, lastEffect: Effect) {
+  commitHookEffectList(flags, lastEffect, (effect) => {
+    const destroy = effect.destroy;
+    if (typeof destroy === 'function') {
+      destroy();
+    }
+  });
+}
+
+export function commitHookEffectListCreate(flags: Flags, lastEffect: Effect) {
+  commitHookEffectList(flags, lastEffect, (effect) => {
+    const create = effect.create;
+    if (typeof create === 'function') {
+      effect.destroy = create();
+    }
+  });
 }
